@@ -6,6 +6,47 @@
 #include <GLFW/glfw3.h>
 #include <Windows.h>
 #include <string>
+#include <vector>
+#include <fstream>
+#include <filesystem>
+#include <iostream>
+
+/*
+ *	シェーダーファイルを読み込み ＋ コンパイル
+ *	@param	type
+ *	@param	filename
+ *	@return	シェーダの管理番号
+ */
+GLuint CompileShader(GLenum type, const char* filename) {
+	//	ファイルを開く
+	std::ifstream file;
+	file.open(filename, std::ios::binary);
+
+	if (!file) {
+		return 1;	//	失敗
+	}
+
+	//	ファイルのサイズを取得
+	const size_t fileSize = std::filesystem::file_size(filename);
+	//	ファイルのサイズ分の領域を確保
+	std::vector<char> buffer(fileSize);
+	//	読み込み + コピー
+	file.read(buffer.data(), fileSize);
+
+	//	ファイルを閉じる
+	file.close();
+
+	const char* source[] = { buffer.data() };
+	const GLint length[] = { int(buffer.size()) };
+	//	シェーダーを作成
+	const GLuint object = glCreateShader(type);
+	//	シェーダのソースを設定
+	glShaderSource(object, 1, source, length);
+	//	シェーダをコンパイル
+	glCompileShader(object);
+
+	return object;
+}
 
 /*
  *	エントリーポイント
@@ -39,6 +80,16 @@ int WINAPI WinMain(
 		glfwTerminate();
 		return 1;	//	失敗
 	}
+
+	//	シェーダーを読み込んでコンパイル
+	const GLuint vs = CompileShader(GL_VERTEX_SHADER, "Res/standard.vert");
+	const GLuint fs = CompileShader(GL_FRAGMENT_SHADER, "Res/standard.frag");
+
+	//	シェーダーをリンク
+	GLuint prog = glCreateProgram();
+	glAttachShader(prog, vs);
+	glAttachShader(prog, fs);
+	glLinkProgram(prog);
 
 	//	頂点データ
 	const float vertexData[][3] = {
@@ -96,6 +147,9 @@ int WINAPI WinMain(
 		//	バックバッファをクリア
 		glClearColor(0.9f, 0.6f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//	描画に使うシェーダを指定
+		glUseProgram(prog);
 
 		//	図形を描画
 		glBindVertexArray(vao);

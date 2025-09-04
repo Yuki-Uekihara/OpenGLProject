@@ -132,6 +132,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Res\standard.frag" />
+    <None Include="Res\standard.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\glad\src\glad.c" />
