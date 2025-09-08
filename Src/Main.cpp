@@ -49,6 +49,53 @@ GLuint CompileShader(GLenum type, const char* filename) {
 }
 
 /*
+ *	テクスチャを読み込み
+ *	@param	filename
+ *	@return	テクスチャの管理番号
+ */
+GLuint LoadTexture(const char* filename) {
+	//	ファイルを開く
+	std::ifstream file;
+	file.open(filename, std::ios::binary);
+
+	if (!file) {
+		return 1;	//	失敗
+	}
+
+	//	ファイルのサイズを取得
+	const size_t fileSize = std::filesystem::file_size(filename);
+	//	ファイルのサイズ分の領域を確保
+	std::vector<uint8_t> buffer(fileSize);
+	//	読み込み + コピー
+	file.read(reinterpret_cast<char*>(buffer.data()), fileSize);
+
+	//	ファイルを閉じる
+	file.close();
+
+	//	TGAヘッダから情報を取得
+	const size_t tgaHeaderSize = 18;	//	ヘッダー情報のバイト数
+	const int width = buffer[12] + buffer[13] * 256;
+	const int height = buffer[14] + buffer[15] * 256;
+
+	//	テクスチャを作成
+	GLuint object = 0;		//	管理番号
+	glCreateTextures(GL_TEXTURE_2D, 1, &object);
+	glTextureStorage2D(object, 1, GL_RGBA8, width, height);
+	glTextureSubImage2D(
+		object,
+		0,
+		0, 0,
+		width, height,
+		GL_BGRA,
+		GL_UNSIGNED_BYTE,
+		buffer.data() + tgaHeaderSize
+	);
+
+	return object;
+}
+
+
+/*
  *	エントリーポイント
  */
 int WINAPI WinMain(
@@ -141,6 +188,8 @@ int WINAPI WinMain(
 	//	0番目の頂点属性を設定
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
+	//	テクスチャを作成
+	GLuint tex = LoadTexture("Res/box.tga");
 
 	//	メインループ
 	while (!glfwWindowShouldClose(window)) {
@@ -150,6 +199,13 @@ int WINAPI WinMain(
 
 		//	描画に使うシェーダを指定
 		glUseProgram(prog);
+
+		//	ユニフォーム変数にデータをコピー
+		const float timer = static_cast<float>(glfwGetTime());
+		glProgramUniform1f(prog, 0, timer);
+
+		//	描画に使うテクスチャをバインド
+		glBindTextures(0, 1, &tex);
 
 		//	図形を描画
 		glBindVertexArray(vao);
