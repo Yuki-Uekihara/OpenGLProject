@@ -4,19 +4,20 @@
 #version 450
 
 //	入力
-layout (location = 0) in vec4 inColor;	//	頂点色
+layout (location = 1) in vec2 inTexcoord;	//	テクスチャ座標
 
 //	出力
 out vec4 outColor;	//	色
 
 //	プログラムからの入力
 layout (binding = 0) uniform sampler2D texColor;
+layout (location = 100) uniform vec4 color;		//	色
+
+
 
 
 void main() {
-	vec4 c = texture(texColor, gl_FragCoord.xy * 0.01f);
+	vec4 c = texture(texColor, inTexcoord);
 
-	outColor = c * inColor;
-	//outColor = inColor;
-	//outColor = vec4(0.2f, 0.3f, 1.0f, 1.0f);
+	outColor = c * color;
 }

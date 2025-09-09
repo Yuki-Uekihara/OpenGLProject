@@ -11,12 +11,12 @@
 #include <filesystem>
 #include <iostream>
 
-/*
- *	シェーダーファイルを読み込み ＋ コンパイル
- *	@param	type
- *	@param	filename
- *	@return	シェーダの管理番号
- */
+ /*
+  *	シェーダーファイルを読み込み ＋ コンパイル
+  *	@param	type
+  *	@param	filename
+  *	@return	シェーダの管理番号
+  */
 GLuint CompileShader(GLenum type, const char* filename) {
 	//	ファイルを開く
 	std::ifstream file;
@@ -138,16 +138,22 @@ int WINAPI WinMain(
 	glAttachShader(prog, fs);
 	glLinkProgram(prog);
 
-	//	頂点データ
-	const float vertexData[][3] = {
-		{ -0.2f, -0.2f, 0.0f },
-		{  0.2f, -0.2f, 0.0f },
-		{  0.0f,  0.2f, 0.0f },
+	//	Vector2
+	struct Vector2 { float x, y; };
+	//	Vector3
+	struct Vector3 { float x, y, z; };
+	//	頂点情報
+	struct Vertex {
+		Vector3 position;		//	頂点座標
+		Vector2 texCoord;		//	テクスチャ座標
+	};
 
-		{ -0.8f, -0.2f, 0.0f },
-		{ -0.4f, -0.2f, 0.0f },
-		{ -0.4f,  0.2f, 0.0f },
-		{ -0.8f,  0.2f, 0.0f },
+	//	頂点データ
+	const Vertex vertexData[] = {
+		{ { -1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } },
+		{ {  1.0f, -1.0f, 0.0f }, { 1.0f, 0.0f } },
+		{ {  1.0f,  1.0f, 0.0f }, { 1.0f, 1.0f } },
+		{ { -1.0f,  1.0f, 0.0f }, { 0.0f, 1.0f } },
 	};
 
 	//	頂点バッファの管理番号
@@ -160,8 +166,7 @@ int WINAPI WinMain(
 
 	//	インデックスデータ
 	const GLushort indexData[] = {
-		0, 1, 2,
-		3, 4, 5,  5, 6, 3,
+		0, 1, 2, 2, 3, 0
 	};
 
 	//	インデックスバッファの管理番号
@@ -186,10 +191,23 @@ int WINAPI WinMain(
 	//	0番目の頂点属性(Vertex Attribute)を有効化
 	glEnableVertexAttribArray(0);
 	//	0番目の頂点属性を設定
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+	//	1番目の頂点属性(Vertex Attribute)を有効化
+	glEnableVertexAttribArray(1);
+	//	1番目の頂点属性を設定
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+		reinterpret_cast<const void*>(offsetof(Vertex, texCoord)));
 
 	//	テクスチャを作成
 	GLuint tex = LoadTexture("Res/box.tga");
+
+	//	物体のパラメータ
+	class GameObject {
+	public:
+		float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };	//	色
+	};
+
+	GameObject box0;
 
 	//	メインループ
 	while (!glfwWindowShouldClose(window)) {
@@ -201,15 +219,17 @@ int WINAPI WinMain(
 		glUseProgram(prog);
 
 		//	ユニフォーム変数にデータをコピー
-		const float timer = static_cast<float>(glfwGetTime());
-		glProgramUniform1f(prog, 0, timer);
+		//const float timer = static_cast<float>(glfwGetTime());
+		//glProgramUniform1f(prog, 0, timer);
+		glProgramUniform4fv(prog, 100, 1, box0.color);
+
 
 		//	描画に使うテクスチャをバインド
 		glBindTextures(0, 1, &tex);
 
 		//	図形を描画
 		glBindVertexArray(vao);
-		glDrawElementsInstanced(GL_TRIANGLES, 9, GL_UNSIGNED_SHORT, 0, 1);
+		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0, 1);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
