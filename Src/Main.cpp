@@ -204,13 +204,28 @@ int WINAPI WinMain(
 	//	物体のパラメータ
 	class GameObject {
 	public:
+		Vector3 position = { 0.0f, 0.0f, 0.0f };		//	平行移動
+		Vector3 rotation = { 0.0f, 0.0f, 0.0f };		//	回転角度
+		Vector3 scale = { 1.0f, 1.0f, 1.0f };			//	拡大率
 		float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };	//	色
 	};
 
 	GameObject box0;
+	box0.scale = { 0.1f, 0.1f, 0.1f };
+	box0.position = { -0.6f, -0.6f, -1.0f };
+
+
+	GameObject box1;
+	box1.color[1] = 0.5f;
+	box1.scale = { 0.2f, 0.2f, 0.2f };
+	box1.position = { 0.0f, 0.0f, -0.8f };
 
 	//	メインループ
 	while (!glfwWindowShouldClose(window)) {
+		//	てすと
+		box0.rotation.y += 0.1f;
+
+
 		//	バックバッファをクリア
 		glClearColor(0.9f, 0.6f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -222,15 +237,24 @@ int WINAPI WinMain(
 		//const float timer = static_cast<float>(glfwGetTime());
 		//glProgramUniform1f(prog, 0, timer);
 		glProgramUniform4fv(prog, 100, 1, box0.color);
+		glProgramUniform3fv(prog, 0, 1, &box0.scale.x);
+		glProgramUniform3fv(prog, 1, 1, &box0.position.x);
+		glProgramUniform2f(prog, 2, sinf(box0.rotation.y), cosf(box0.rotation.y));
 
 
 		//	描画に使うテクスチャをバインド
 		glBindTextures(0, 1, &tex);
 
 		//	図形を描画
-		glBindVertexArray(vao);
 		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0, 1);
-		glBindVertexArray(0);
+
+		glProgramUniform4fv(prog, 100, 1, box1.color);
+		glProgramUniform3fv(prog, 0, 1, &box1.scale.x);
+		glProgramUniform3fv(prog, 1, 1, &box1.position.x);
+		glProgramUniform2f(prog, 2, sinf(box1.rotation.y), cosf(box1.rotation.y));
+
+		//	図形を描画
+		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0, 1);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
