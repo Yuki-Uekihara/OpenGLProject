@@ -150,10 +150,16 @@ int WINAPI WinMain(
 
 	//	頂点データ
 	const Vertex vertexData[] = {
-		{ { -1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } },
-		{ {  1.0f, -1.0f, 0.0f }, { 1.0f, 0.0f } },
-		{ {  1.0f,  1.0f, 0.0f }, { 1.0f, 1.0f } },
-		{ { -1.0f,  1.0f, 0.0f }, { 0.0f, 1.0f } },
+		//	+Z (手前の面)
+		{ { -1.0f, -1.0f,  1.0f }, { 0.0f, 0.0f } },
+		{ {  1.0f, -1.0f,  1.0f }, { 1.0f, 0.0f } },
+		{ {  1.0f,  1.0f,  1.0f }, { 1.0f, 1.0f } },
+		{ { -1.0f,  1.0f,  1.0f }, { 0.0f, 1.0f } },
+		//	-Z (手前の面)  
+		{ {  1.0f, -1.0f, -1.0f }, { 0.0f, 0.0f } },
+		{ { -1.0f, -1.0f, -1.0f }, { 1.0f, 0.0f } },
+		{ { -1.0f,  1.0f, -1.0f }, { 1.0f, 1.0f } },
+		{ {  1.0f,  1.0f, -1.0f }, { 0.0f, 1.0f } },
 	};
 
 	//	頂点バッファの管理番号
@@ -166,7 +172,8 @@ int WINAPI WinMain(
 
 	//	インデックスデータ
 	const GLushort indexData[] = {
-		0, 1, 2, 2, 3, 0
+		0, 1, 2, 2, 3, 0,
+		4, 5, 6, 6, 7, 4,
 	};
 
 	//	インデックスバッファの管理番号
@@ -210,6 +217,8 @@ int WINAPI WinMain(
 		float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };	//	色
 	};
 
+	GameObject camera;
+
 	GameObject box0;
 	box0.scale = { 0.1f, 0.1f, 0.1f };
 	box0.position = { -0.6f, -0.6f, -1.0f };
@@ -225,6 +234,24 @@ int WINAPI WinMain(
 		//	てすと
 		box0.rotation.y += 0.1f;
 
+		//	カメラのX軸移動
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+			camera.position.x -= 0.05f;
+		}
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+			camera.position.x += 0.05f;
+		}
+
+		//	カメラのY軸回転
+		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+			camera.rotation.y -= 0.05f;
+		}
+		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+			camera.rotation.y += 0.05f;
+		}
+
+
+
 
 		//	バックバッファをクリア
 		glClearColor(0.9f, 0.6f, 0.3f, 1.0f);
@@ -233,6 +260,17 @@ int WINAPI WinMain(
 		//	描画に使うシェーダを指定
 		glUseProgram(prog);
 
+		//	フレームバッファ(画面)の大きさを取得
+		int fbWidth, fbHeight;
+		glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+
+		//	ビューポートの設定
+		glViewport(0, 0, fbWidth, fbHeight);
+
+		//	アスペクト比を計算
+		const float aspectRatio = 
+			static_cast<float>(fbWidth) / static_cast<float>(fbHeight);
+
 		//	ユニフォーム変数にデータをコピー
 		//const float timer = static_cast<float>(glfwGetTime());
 		//glProgramUniform1f(prog, 0, timer);
@@ -240,13 +278,21 @@ int WINAPI WinMain(
 		glProgramUniform3fv(prog, 0, 1, &box0.scale.x);
 		glProgramUniform3fv(prog, 1, 1, &box0.position.x);
 		glProgramUniform2f(prog, 2, sinf(box0.rotation.y), cosf(box0.rotation.y));
+		glProgramUniform1f(prog, 3, aspectRatio);
+		glProgramUniform3fv(prog, 4, 1, &camera.position.x);
+		glProgramUniform2f(prog, 5, sinf(-camera.rotation.y), cosf(-camera.rotation.y));
 
+		//	深度テストの有効化
+		glEnable(GL_DEPTH_TEST);
 
 		//	描画に使うテクスチャをバインド
 		glBindTextures(0, 1, &tex);
 
+		//	インデックスを取得
+		const GLsizei indexCount = std::size(indexData);
+
 		//	図形を描画
-		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0, 1);
+		glDrawElementsInstanced(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, 0, 1);
 
 		glProgramUniform4fv(prog, 100, 1, box1.color);
 		glProgramUniform3fv(prog, 0, 1, &box1.scale.x);
@@ -254,7 +300,7 @@ int WINAPI WinMain(
 		glProgramUniform2f(prog, 2, sinf(box1.rotation.y), cosf(box1.rotation.y));
 
 		//	図形を描画
-		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0, 1);
+		glDrawElementsInstanced(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, 0, 1);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
