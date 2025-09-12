@@ -234,13 +234,31 @@ int WINAPI WinMain(
 		//	てすと
 		box0.rotation.y += 0.1f;
 
+		const float cameraSpeed = 0.05f;
+		const float cameraCos = cosf(camera.rotation.y);
+		const float cameraSin = sinf(camera.rotation.y);
+
 		//	カメラのX軸移動
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			camera.position.x -= 0.05f;
+			camera.position.x -= cameraSpeed * cameraCos;
+			camera.position.z -= cameraSpeed * -cameraSin;
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			camera.position.x += 0.05f;
+			camera.position.x += cameraSpeed * cameraCos;
+			camera.position.z += cameraSpeed * -cameraSin;
 		}
+
+		//	カメラのZ軸移動
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+			camera.position.x -= cameraSpeed * cameraSin;
+			camera.position.z -= cameraSpeed * cameraCos;
+		}
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+			camera.position.x += cameraSpeed * cameraSin;
+			camera.position.z += cameraSpeed * cameraCos;
+		}
+
+
 
 		//	カメラのY軸回転
 		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
@@ -271,6 +289,10 @@ int WINAPI WinMain(
 		const float aspectRatio = 
 			static_cast<float>(fbWidth) / static_cast<float>(fbHeight);
 
+		const float degFovY = 60;	//	垂直の視野角
+		const float radFovY = degFovY * 3.141592f / 180.0f;
+		const float scaleFov = tanf(radFovY / 2);	//	視野角による拡大率
+
 		//	ユニフォーム変数にデータをコピー
 		//const float timer = static_cast<float>(glfwGetTime());
 		//glProgramUniform1f(prog, 0, timer);
@@ -278,7 +300,7 @@ int WINAPI WinMain(
 		glProgramUniform3fv(prog, 0, 1, &box0.scale.x);
 		glProgramUniform3fv(prog, 1, 1, &box0.position.x);
 		glProgramUniform2f(prog, 2, sinf(box0.rotation.y), cosf(box0.rotation.y));
-		glProgramUniform1f(prog, 3, aspectRatio);
+		glProgramUniform2f(prog, 3, 1 / (aspectRatio * scaleFov), 1 / scaleFov);
 		glProgramUniform3fv(prog, 4, 1, &camera.position.x);
 		glProgramUniform2f(prog, 5, sinf(-camera.rotation.y), cosf(-camera.rotation.y));
 

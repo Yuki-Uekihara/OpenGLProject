@@ -16,7 +16,7 @@ layout (location = 1) out vec2 outTexcoord;	//	テクスチャ座標
 layout (location = 0) uniform vec3 scale;		//	拡大率
 layout (location = 1) uniform vec3 position;	//	平行移動
 layout (location = 2) uniform vec2 sinCosY;		//	Y軸回転
-layout (location = 3) uniform float aspectRatio;	//	アスペクト比
+layout (location = 3) uniform vec2 aspectRatioAndScaleFov;	//	アスペクト比と視野角
 layout (location = 4) uniform vec3 cameraPosition;	//	カメラの平行移動
 layout (location = 5) uniform vec2 cameraSinCosY;	//	カメラのY軸回転
 
@@ -44,7 +44,7 @@ void main() {
 	gl_Position.z = pos.x * -cameraSinY + pos.z * cameraCosY;
 
 	//	ビュー座標系からクリップ座標系に変換
-	gl_Position.x /= aspectRatio;
+	gl_Position.xy *= aspectRatioAndScaleFov;
 
 	//	深度値の計算結果が -1 ~ +1 になるようにA, Bを計算
 	const float near = 0.5f;
