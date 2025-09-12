@@ -3,6 +3,8 @@
  */
 
 #include <glad/glad.h>
+#include "Engine/Engine.h"
+
 #include <GLFW/glfw3.h>
 #include <Windows.h>
 #include <string>
@@ -104,14 +106,21 @@ int WINAPI WinMain(
 	_In_ LPSTR lpCmdLine,
 	_In_ int nShowCmd
 ) {
+	Engine engine;
+	return engine.Run();
+}
+
+/*
+ *	ゲームエンジンを実行する
+ *	@return	0	正常
+ */
+int Engine::Run() {
 
 	//	GLFWの初期化
 	if (glfwInit() != GLFW_TRUE)
 		return 1;	//	失敗
 
 	//	描画ウィンドウの作成
-	GLFWwindow* window = nullptr;				//	ウィンドウオブジェクト
-	const std::string title = "OpenGLGame";		//	ウィンドウのタイトル
 	window = glfwCreateWindow(1280, 720, title.c_str(), nullptr, nullptr);
 
 	if (!window) {
@@ -129,11 +138,11 @@ int WINAPI WinMain(
 	}
 
 	//	シェーダーを読み込んでコンパイル
-	const GLuint vs = CompileShader(GL_VERTEX_SHADER, "Res/standard.vert");
-	const GLuint fs = CompileShader(GL_FRAGMENT_SHADER, "Res/standard.frag");
+	vs = CompileShader(GL_VERTEX_SHADER, "Res/standard.vert");
+	fs = CompileShader(GL_FRAGMENT_SHADER, "Res/standard.frag");
 
 	//	シェーダーをリンク
-	GLuint prog = glCreateProgram();
+	prog = glCreateProgram();
 	glAttachShader(prog, vs);
 	glAttachShader(prog, fs);
 	glLinkProgram(prog);

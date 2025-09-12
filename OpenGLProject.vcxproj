@@ -136,10 +136,12 @@
     <None Include="Res\standard.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Engine\Engine.cpp" />
     <ClCompile Include="Src\glad\src\glad.c" />
     <ClCompile Include="Src\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Engine\Engine.h" />
     <ClInclude Include="Src\glad\include\glad\glad.h" />
     <ClInclude Include="Src\glad\include\KHR\khrplatform.h" />
   </ItemGroup>
