@@ -9,6 +9,8 @@
 #include <GLFW/glfw3.h>
 #include <string>
 
+#include "GameObject.h"
+
 /*
  *	ÉQÅ[ÉÄÉGÉìÉWÉì
  */
@@ -19,16 +21,28 @@ private:
 	GLuint vs = 0;
 	GLuint fs = 0;
 	GLuint prog = 0;
-	//vbo
-	//ibo
-	//vao
-	//tex
+	GLuint vbo = 0;		//	vertex buffer object
+	GLuint ibo = 0;		//	index buffer object
+	GLuint vao = 0;		//	vertex array object
+	GLuint tex = 0;
+
+	GameObject camera;
+	GameObject box0;
+	GameObject box1;
+
+	GLsizei indexCount = 0;
 
 public:
 	Engine() = default;
 	~Engine() = default;
 
 	int Run();
+
+private:
+	int Initialize();
+	void Update();
+	void Render();
+
 };
 
 #endif // !_ENGINE_H_
