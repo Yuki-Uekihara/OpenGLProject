@@ -245,6 +245,9 @@ int Engine::Initialize() {
 	//	テクスチャを作成
 	tex = LoadTexture("Res/box.tga");
 
+	//	一元管理配列の容量を予約
+	gameObjects.reserve(1000);
+
 	box0.scale = { 0.1f, 0.1f, 0.1f };
 	box0.position = { -0.6f, -0.6f, -1.0f };
 

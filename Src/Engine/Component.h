@@ -6,6 +6,10 @@
 #define _COMPONENT_H_
 
 #include <memory>
+#include "GameObject.h"
+
+//	前方宣言
+class GameObject;
 
 /*
  *	コンポーネントの基底クラス
@@ -33,7 +37,9 @@ public:
 	virtual void Update(float deltaTime) {}
 
 	//	衝突が起きたときに呼び出される
-	virtual void OnCollision() {}
+	virtual void OnCollision(
+		const std::shared_ptr<Component>& self,
+		const std::shared_ptr<Component>& other) {}
 
 	//	削除されるときに呼び出される
 	virtual void OnDestroy() {}
@@ -42,7 +48,7 @@ public:
 	//	コンポーネントの所有者を取得
 	inline GameObject* GetOwner() const { return owner; }
 
-	//	コンポーネントが破壊されているかどうか
+	//	コンポーネントが破棄されているかどうか
 	inline bool IsDestroyed() const { return isDestroyed; }
 
 	//	コンポーネントをゲームオブジェクトから削除する

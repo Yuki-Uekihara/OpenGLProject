@@ -137,6 +137,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Engine\Engine.cpp" />
+    <ClCompile Include="Src\Engine\GameObject.cpp" />
     <ClCompile Include="Src\glad\src\glad.c" />
     <ClCompile Include="Src\Main.cpp" />
   </ItemGroup>

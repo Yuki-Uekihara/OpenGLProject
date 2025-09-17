@@ -26,6 +26,8 @@ private:
 	GLuint vao = 0;		//	vertex array object
 	GLuint tex = 0;
 
+	GameObjectList gameObjects;		//	ゲームオブジェクトの一元管理
+
 	GameObject camera;
 	GameObject box0;
 	GameObject box1;
@@ -42,6 +44,30 @@ private:
 	int Initialize();
 	void Update();
 	void Render();
+
+public:
+	/*
+	 *	ゲームオブジェクトを生成する
+	 *	@param	name
+	 *	@param	position
+	 *	@param	rotation
+	 */
+	template <class T>
+	std::shared_ptr<T> Create(
+		const std::string& name,
+		const Vector3& position = { 0.0f, 0.0f, 0.0f },
+		const Vector3& rotation = { 0.0f, 0.0f, 0.0f }
+	) {
+		//	オブジェクトのポインタを生成
+		std::shared_ptr<T> p = std::make_shared<T>();
+		p->engine = this;
+		p->name = name;
+		p->position = position;
+		p->rotation = rotation;
+		//	一元管理に追加
+		gameObjects.push_back(p);
+		return p;
+	}
 
 };
 
