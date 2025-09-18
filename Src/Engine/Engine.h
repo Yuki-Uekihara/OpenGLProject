@@ -27,10 +27,11 @@ private:
 	GLuint tex = 0;
 
 	GameObjectList gameObjects;		//	ゲームオブジェクトの一元管理
+	float previousTime = 0;			//	前回の更新時
+	float deltaTime = 0;			//	前回の更新からの経過時間
+
 
 	GameObject camera;
-	GameObject box0;
-	GameObject box1;
 
 	GLsizei indexCount = 0;
 
@@ -45,6 +46,8 @@ private:
 	void Update();
 	void Render();
 
+	void UpdateGameObject(float deltaTime);
+	void RemoveGameObject();
 public:
 	/*
 	 *	ゲームオブジェクトを生成する
@@ -67,6 +70,19 @@ public:
 		//	一元管理に追加
 		gameObjects.push_back(p);
 		return p;
+	}	
+
+	//	すべてのゲームオブジェクトを削除する
+	void ClearGameObjects();
+
+public:
+	//	カメラを取得する
+	inline GameObject& GetMainCamera() { return camera; }
+	inline const GameObject& GetMainCamera() const { return camera; }
+
+	//	キー入力の検知
+	inline bool GetKey(int key) const {
+		return glfwGetKey(window, key) == GLFW_PRESS;
 	}
 
 };

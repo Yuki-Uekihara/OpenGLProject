@@ -7,6 +7,8 @@
 #include <filesystem>
 #include <vector>
 
+#include "../PlayerComponent.h"
+
  /*
   *	シェーダーファイルを読み込み ＋ コンパイル
   *	@param	type
@@ -104,6 +106,7 @@ int Engine::Run() {
 	while (!glfwWindowShouldClose(window)) {
 		Update();
 		Render();
+		RemoveGameObject();
 	}
 
 	glfwTerminate();
@@ -248,12 +251,19 @@ int Engine::Initialize() {
 	//	一元管理配列の容量を予約
 	gameObjects.reserve(1000);
 
+	auto& box0 = *Create<GameObject>("box0");
 	box0.scale = { 0.1f, 0.1f, 0.1f };
 	box0.position = { -0.6f, -0.6f, -1.0f };
 
+	auto& box1 = *Create<GameObject>("box1");
 	box1.color[1] = 0.5f;
 	box1.scale = { 0.2f, 0.2f, 0.2f };
 	box1.position = { 0.0f, 0.0f, -0.8f };
+
+	//	カメラを操作するプレイヤーコンポーネントを生成
+	auto player = Create<GameObject>("player", { 0.0f, 10.0f, 0.0f });
+	player->AddComponent<PlayerComponent>();
+
 
 	return 0;
 }
@@ -262,39 +272,17 @@ int Engine::Initialize() {
  *	ゲームエンジンの状態を更新する
  */
 void Engine::Update() {
-	//	テスト回転
-	box0.rotation.y += 0.01f;
 
-	//	カメラの移動
-	const float cameraSpeed = 0.005f;
-	const float cameraCos = cos(camera.rotation.y);
-	const float cameraSin = sin(camera.rotation.y);
+	//	デルタタイムの計算
+	const float currentTime = static_cast<float>(glfwGetTime());	//	現在
+	deltaTime = currentTime - previousTime;
+	previousTime = currentTime;
 
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		camera.position.x -= cameraSpeed * cameraCos;
-		camera.position.z -= cameraSpeed * -cameraSin;
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		camera.position.x += cameraSpeed * cameraCos;
-		camera.position.z += cameraSpeed * -cameraSin;
-	}
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		camera.position.x -= cameraSpeed * cameraSin;
-		camera.position.z -= cameraSpeed * cameraCos;
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		camera.position.x += cameraSpeed * cameraSin;
-		camera.position.z += cameraSpeed * cameraCos;
-	}
+	//	デバッグ用
+	if (deltaTime >= 0.5f)
+		deltaTime = 1.0f / 60.0f;
 
-	//	テストカメラの回転
-	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-		camera.rotation.y -= 0.005f;
-	}
-	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-		camera.rotation.y += 0.005f;
-	}
-
+	UpdateGameObject(deltaTime);
 }
 
 /*
@@ -326,10 +314,6 @@ void Engine::Render() {
 	//	ユニフォーム変数にデータをコピー
 	//const float timer = static_cast<float>(glfwGetTime());
 	//glProgramUniform1f(prog, 0, timer);
-	glProgramUniform4fv(prog, 100, 1, box0.color);
-	glProgramUniform3fv(prog, 0, 1, &box0.scale.x);
-	glProgramUniform3fv(prog, 1, 1, &box0.position.x);
-	glProgramUniform2f(prog, 2, sinf(box0.rotation.y), cosf(box0.rotation.y));
 	glProgramUniform2f(prog, 3, 1 / (aspectRatio * scaleFov), 1 / scaleFov);
 	glProgramUniform3fv(prog, 4, 1, &camera.position.x);
 	glProgramUniform2f(prog, 5, sinf(-camera.rotation.y), cosf(-camera.rotation.y));
@@ -337,26 +321,80 @@ void Engine::Render() {
 	//	深度テストの有効化
 	glEnable(GL_DEPTH_TEST);
 
-	//	描画に使うテクスチャをバインド
-	glBindTextures(0, 1, &tex);
-	//	使用する頂点属性を割り当て
-	glBindVertexArray(vao);
+	//	ゲームオブジェクトの描画
+	for (const auto& obj : gameObjects) {
+		glProgramUniform4fv(prog, 100, 1, obj->color);
+		glProgramUniform3fv(prog, 0, 1, &obj->scale.x);
+		glProgramUniform3fv(prog, 1, 1, &obj->position.x);
+		glProgramUniform2f(prog, 2, sinf(obj->rotation.y), cosf(obj->rotation.y));
+		
+		//	描画に使うテクスチャをバインド
+		glBindTextures(0, 1, &tex);
 
-	//	図形を描画
-	glDrawElementsInstanced(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, 0, 1);
+		//	図形を描画
+		glDrawElementsInstanced(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, 0, 1);
+	}
 
-	glProgramUniform4fv(prog, 100, 1, box1.color);
-	glProgramUniform3fv(prog, 0, 1, &box1.scale.x);
-	glProgramUniform3fv(prog, 1, 1, &box1.position.x);
-	glProgramUniform2f(prog, 2, sinf(box1.rotation.y), cosf(box1.rotation.y));
 
-	//	図形を描画
-	glDrawElementsInstanced(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, 0, 1);
 
-	glBindVertexArray(0);		//	VAOの割り当てを解除
 
 	glfwSwapBuffers(window);
 	glfwPollEvents();
+}
+
+/*
+ *	ゲームオブジェクトの状態を更新する
+ *	@	param	deltaTime
+ */
+void Engine::UpdateGameObject(float deltaTime) {
+	//	要素の追加に対応するために 普通の for文を選択
+	for (int i = 0; i < gameObjects.size(); i++) {
+		GameObject* pObj = gameObjects[i].get();
+		if (!pObj->IsDestroyed()) {
+			pObj->Start();
+			pObj->Update(deltaTime);
+		}
+	}
+}
+
+/*
+ *	破棄予定のゲームオブジェクトを削除する
+ */
+void Engine::RemoveGameObject() {
+	//	ゲームオブジェクトがなければ処理しない
+	if (gameObjects.empty())
+		return;
+
+	//	破棄の予定の有無でゲームオブジェクトを分ける
+	const auto itr = std::stable_partition(
+		gameObjects.begin(), gameObjects.end(),
+		[](const auto& p) { return !p->IsDestroyed(); }
+	);
+
+	//	削除予定のゲームオブジェクトを別の配列に移動
+	std::vector<GameObjectPtr> destroyList(
+		std::move_iterator(itr),
+		std::move_iterator(gameObjects.end())
+	);
+
+	//	配列から移動済みのゲームオブジェクトを削除
+	gameObjects.erase(itr, gameObjects.end());
+
+	//	破棄予定のゲームオブジェクトにイベント発火
+	for (auto& c : destroyList) {
+		c->OnDestroy();
+	}
+
+	//	ローカル変数 destroyList の寿命はここまで
+}
 
 
+/*
+ *	ゲームエンジンから全てのゲームオブジェクトを破棄する
+ */
+void Engine::ClearGameObjects() {
+	for (auto& obj : gameObjects) {
+		obj->OnDestroy();
+	}
+	gameObjects.clear();
 }

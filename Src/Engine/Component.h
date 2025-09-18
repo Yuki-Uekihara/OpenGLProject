@@ -37,9 +37,7 @@ public:
 	virtual void Update(float deltaTime) {}
 
 	//	Õ“Ë‚ª‹N‚«‚½‚Æ‚«‚ÉŒÄ‚Ño‚³‚ê‚é
-	virtual void OnCollision(
-		const std::shared_ptr<Component>& self,
-		const std::shared_ptr<Component>& other) {}
+	virtual void OnCollision(const std::shared_ptr<Component>& self, const std::shared_ptr<Component>& other) {}
 
 	//	íœ‚³‚ê‚é‚Æ‚«‚ÉŒÄ‚Ño‚³‚ê‚é
 	virtual void OnDestroy() {}

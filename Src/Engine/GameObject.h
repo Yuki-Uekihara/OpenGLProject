@@ -23,7 +23,7 @@ class GameObject {
 private:
 	Engine* engine = nullptr;						//	エンジンのアドレス
 	bool isDestroyed = false;						//	削除されているかどうか
-	std::vector<ComponentPtr> components;			//	コンポーネント配列
+	std::vector<ComponentPtr> gameObjects;			//	コンポーネント配列
 
 public:
 	std::string name;								//	名前
@@ -57,7 +57,7 @@ public:
 	std::shared_ptr<T> AddComponent() {
 		auto p = std::make_shared<T>();
 		p->owner = this;
-		components.push_back(p);
+		gameObjects.push_back(p);
 		p->Awake();
 		return p;
 	}

@@ -148,6 +148,7 @@
     <ClInclude Include="Src\Engine\VecMath.h" />
     <ClInclude Include="Src\glad\include\glad\glad.h" />
     <ClInclude Include="Src\glad\include\KHR\khrplatform.h" />
+    <ClInclude Include="Src\PlayerComponent.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
