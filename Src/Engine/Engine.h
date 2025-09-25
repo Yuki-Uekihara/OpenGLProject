@@ -11,6 +11,7 @@
 
 #include "GameObject.h"
 #include "Scene.h"
+#include "Mesh.h"
 
 /*
  *	ゲームエンジン
@@ -25,7 +26,10 @@ private:
 	GLuint vbo = 0;		//	vertex buffer object
 	GLuint ibo = 0;		//	index buffer object
 	GLuint vao = 0;		//	vertex array object
-	GLuint tex = 0;
+
+	GLintptr vboSize;	//	頂点バッファの現在のサイズ
+	GLintptr iboSize;	//	インデックスバッファの現在のサイズ
+	std::vector<DrawParam> drawParamList;	//	描画パラメータ配列
 
 	GameObjectList gameObjects;		//	ゲームオブジェクトの一元管理
 	float previousTime = 0;			//	前回の更新時

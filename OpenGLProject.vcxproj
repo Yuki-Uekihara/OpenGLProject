@@ -138,6 +138,7 @@
   <ItemGroup>
     <ClCompile Include="Src\Engine\Engine.cpp" />
     <ClCompile Include="Src\Engine\GameObject.cpp" />
+    <ClCompile Include="Src\Engine\Texture.cpp" />
     <ClCompile Include="Src\glad\src\glad.c" />
     <ClCompile Include="Src\Main.cpp" />
     <ClCompile Include="Src\MainGameScene.cpp" />
@@ -146,7 +147,9 @@
     <ClInclude Include="Src\Engine\Component.h" />
     <ClInclude Include="Src\Engine\Engine.h" />
     <ClInclude Include="Src\Engine\GameObject.h" />
+    <ClInclude Include="Src\Engine\Mesh.h" />
     <ClInclude Include="Src\Engine\Scene.h" />
+    <ClInclude Include="Src\Engine\Texture.h" />
     <ClInclude Include="Src\Engine\VecMath.h" />
     <ClInclude Include="Src\glad\include\glad\glad.h" />
     <ClInclude Include="Src\glad\include\KHR\khrplatform.h" />

@@ -7,6 +7,7 @@
 
 #include "VecMath.h"
 #include "Component.h"
+#include "Texture.h"
 
 #include <memory>
 #include <vector>
@@ -31,6 +32,8 @@ public:
 	Vector3 rotation = { 0.0f, 0.0f, 0.0f };		//	回転角度
 	Vector3 scale = { 1.0f, 1.0f, 1.0f };			//	拡大率
 	float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };	//	色
+	TexturePtr texColor;							//	カラーテクスチャ
+
 
 public:
 	GameObject() = default;

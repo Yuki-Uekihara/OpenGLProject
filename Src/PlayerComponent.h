@@ -22,7 +22,7 @@ public:
 		GameObject& camera = engine->GetMainCamera();
 
 		//	カメラの移動
-		const float cameraSpeed = 0.005f;
+		const float cameraSpeed = 0.05f;
 		const float cameraCos = cos(camera.rotation.y);
 		const float cameraSin = sin(camera.rotation.y);
 
@@ -45,10 +45,10 @@ public:
 
 		//	テストカメラの回転
 		if (engine->GetKey(GLFW_KEY_LEFT)) {
-			camera.rotation.y -= 0.005f;
+			camera.rotation.y -= 0.05f;
 		}
 		if (engine->GetKey(GLFW_KEY_RIGHT)) {
-			camera.rotation.y += 0.005f;
+			camera.rotation.y += 0.05f;
 		}
 	}
 

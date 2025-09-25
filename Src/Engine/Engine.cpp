@@ -46,52 +46,6 @@ GLuint CompileShader(GLenum type, const char* filename) {
 	return object;
 }
 
-/*
- *	テクスチャを読み込み
- *	@param	filename
- *	@return	テクスチャの管理番号
- */
-GLuint LoadTexture(const char* filename) {
-	//	ファイルを開く
-	std::ifstream file;
-	file.open(filename, std::ios::binary);
-
-	if (!file) {
-		return 1;	//	失敗
-	}
-
-	//	ファイルのサイズを取得
-	const size_t fileSize = std::filesystem::file_size(filename);
-	//	ファイルのサイズ分の領域を確保
-	std::vector<uint8_t> buffer(fileSize);
-	//	読み込み + コピー
-	file.read(reinterpret_cast<char*>(buffer.data()), fileSize);
-
-	//	ファイルを閉じる
-	file.close();
-
-	//	TGAヘッダから情報を取得
-	const size_t tgaHeaderSize = 18;	//	ヘッダー情報のバイト数
-	const int width = buffer[12] + buffer[13] * 256;
-	const int height = buffer[14] + buffer[15] * 256;
-
-	//	テクスチャを作成
-	GLuint object = 0;		//	管理番号
-	glCreateTextures(GL_TEXTURE_2D, 1, &object);
-	glTextureStorage2D(object, 1, GL_RGBA8, width, height);
-	glTextureSubImage2D(
-		object,
-		0,
-		0, 0,
-		width, height,
-		GL_BGRA,
-		GL_UNSIGNED_BYTE,
-		buffer.data() + tgaHeaderSize
-	);
-
-	return object;
-}
-
 
 
 /*
@@ -149,11 +103,6 @@ int Engine::Initialize() {
 	glAttachShader(prog, fs);
 	glLinkProgram(prog);
 
-	//	頂点情報
-	struct Vertex {
-		Vector3 position;		//	頂点座標
-		Vector2 texCoord;		//	テクスチャ座標
-	};
 
 	//	頂点データ
 	const Vertex vertexData[] = {
@@ -245,25 +194,16 @@ int Engine::Initialize() {
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
 		reinterpret_cast<const void*>(offsetof(Vertex, texCoord)));
 
-	//	テクスチャを作成
-	tex = LoadTexture("Res/box.tga");
-
 	//	一元管理配列の容量を予約
 	gameObjects.reserve(1000);
-
-	auto& box0 = *Create<GameObject>("box0");
-	box0.scale = { 0.1f, 0.1f, 0.1f };
-	box0.position = { -0.6f, -0.6f, -1.0f };
-
-	auto& box1 = *Create<GameObject>("box1");
-	box1.color[1] = 0.5f;
-	box1.scale = { 0.2f, 0.2f, 0.2f };
-	box1.position = { 0.0f, 0.0f, -0.8f };
 
 	//	カメラを操作するプレイヤーコンポーネントを生成
 	auto player = Create<GameObject>("player", { 0.0f, 10.0f, 0.0f });
 	player->AddComponent<PlayerComponent>();
 
+	//	カメラの設定
+	camera.position = { 3, 1, 3 };
+	camera.rotation.y = 3.14159265f;
 
 	return 0;
 }
@@ -343,7 +283,10 @@ void Engine::Render() {
 		glProgramUniform2f(prog, 2, sinf(obj->rotation.y), cosf(obj->rotation.y));
 
 		//	描画に使うテクスチャをバインド
-		glBindTextures(0, 1, &tex);
+		if (obj->texColor) {
+			const GLuint tex = *obj->texColor;
+			glBindTextures(0, 1, &tex);
+		}
 
 		//	図形を描画
 		glDrawElementsInstanced(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, 0, 1);
