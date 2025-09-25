@@ -10,6 +10,7 @@
 #include <string>
 
 #include "GameObject.h"
+#include "Scene.h"
 
 /*
  *	ゲームエンジン
@@ -29,6 +30,9 @@ private:
 	GameObjectList gameObjects;		//	ゲームオブジェクトの一元管理
 	float previousTime = 0;			//	前回の更新時
 	float deltaTime = 0;			//	前回の更新からの経過時間
+
+	ScenePtr scene;					//	実行中のシーン
+	ScenePtr nextScene;				//	次のシーン
 
 
 	GameObject camera;
@@ -74,6 +78,10 @@ public:
 
 	//	すべてのゲームオブジェクトを削除する
 	void ClearGameObjects();
+
+	//	次のシーンを設定する
+	template <class T>
+	void SetNextScene() { nextScene = std::make_shared<T>();  }
 
 public:
 	//	カメラを取得する

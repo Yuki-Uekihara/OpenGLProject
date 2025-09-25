@@ -1,5 +1,5 @@
 /*
- *	@file	Engine.h
+ *	@file	Engine.cpp
  */
 
 #include "Engine.h"
@@ -282,6 +282,20 @@ void Engine::Update() {
 	if (deltaTime >= 0.5f)
 		deltaTime = 1.0f / 60.0f;
 
+	//	シーンの切り替え
+	if (nextScene) {
+		if (scene)
+			scene->Finalize(*this);
+
+		nextScene->Initialize(*this);
+		scene = std::move(nextScene);
+	}
+
+	//	シーンの更新
+	if (scene)
+		scene->Update(*this, deltaTime);
+
+
 	UpdateGameObject(deltaTime);
 }
 
@@ -327,7 +341,7 @@ void Engine::Render() {
 		glProgramUniform3fv(prog, 0, 1, &obj->scale.x);
 		glProgramUniform3fv(prog, 1, 1, &obj->position.x);
 		glProgramUniform2f(prog, 2, sinf(obj->rotation.y), cosf(obj->rotation.y));
-		
+
 		//	描画に使うテクスチャをバインド
 		glBindTextures(0, 1, &tex);
 

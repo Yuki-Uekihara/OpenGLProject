@@ -6,6 +6,8 @@
 #include "Engine/Engine.h"
 #include "Engine/GameObject.h"
 
+#include "MainGameScene.h"
+
 #include <GLFW/glfw3.h>
 #include <Windows.h>
 
@@ -20,6 +22,7 @@ int WINAPI WinMain(
 	_In_ int nShowCmd
 ) {
 	Engine engine;
+	engine.SetNextScene<MainGameScene>();
 	return engine.Run();
 }
 
