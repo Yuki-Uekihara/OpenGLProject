@@ -7,6 +7,8 @@
 #include <fstream>
 #include <string>
 
+
+
 /*
  *	シーンを初期化する
  *	@return	true	成功
@@ -40,17 +42,30 @@ bool MainGameScene::Initialize(Engine& engine) {
 	};
 	floor->position = { floor->scale.x, -1, floor->scale.z };
 	floor->texColor = std::make_shared<Texture>("Res/floor.tga");
+	floor->meshId = 0;
 
-	//	壁を生成
 	auto texwall = std::make_shared<Texture>("Res/wall.tga");
+	auto texCrystalBlue = std::make_shared<Texture>("Res/MeshData/crystal_blue.tga");
+
 	for (int y = 0; y < mapSizeY; y++) {
 		for (int x = 0; x < mapSizeX; x++) {
 			const float posX = static_cast<float>(x + 0.5f) * squareSize;
 			const float posZ = static_cast<float>(y + 0.5f) * squareSize;
+			
+			//	壁を生成
 			if (GetMapData(x, y) == '#') {
 				auto wall = engine.Create<GameObject>("wall", { posX, 0.5f * squareSize, posZ });
 				wall->scale = { squareScale, squareScale, squareScale };
 				wall->texColor = texwall;
+				wall->meshId = 0;
+			}
+			
+			//	クリスタルを生成
+			else if (GetMapData(x, y) == 'C') {
+				auto crystal = engine.Create<GameObject>("crystal", { posX, 1, posZ });
+				crystal->scale = { 0.5f, 0.5f, 0.5f };
+				crystal->texColor = texCrystalBlue;
+				crystal->meshId = 1;
 			}
 		}
 	}

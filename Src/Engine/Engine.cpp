@@ -9,6 +9,10 @@
 
 #include "../PlayerComponent.h"
 
+ //	図形データ
+#include "../../Res/MeshData/crystal_mesh.h"
+
+
  /*
   *	シェーダーファイルを読み込み ＋ コンパイル
   *	@param	type
@@ -148,7 +152,7 @@ int Engine::Initialize() {
 	//	バッファの作成
 	glCreateBuffers(1, &vbo);
 	//	GPUメモリを確保しデータをコピーする
-	glNamedBufferStorage(vbo, sizeof(vertexData), vertexData, 0);
+	glNamedBufferStorage(vbo, sizeof(Vertex) * 10000, nullptr, 0);
 
 
 	//	インデックスデータ
@@ -163,6 +167,19 @@ int Engine::Initialize() {
 	//	インデックスを取得
 	indexCount = static_cast<GLsizei>(std::size(indexData));
 
+	//	図形データの情報
+	struct MeshData {
+		size_t vertexSize;			//	頂点データのバイト数
+		size_t indexSize;			//	インデックスデータのバイト数
+		const void* vertexData;		//	頂点データのアドレス
+		const void* indexData;		//	インデックスデータのアドレス
+	};
+
+	const MeshData meshes[] = {
+		{ sizeof(vertexData), sizeof(indexData), vertexData, indexData },
+		{ sizeof(crystal_vertices), sizeof(crystal_indices), crystal_vertices, crystal_indices },
+
+	};
 
 
 	//	インデックスバッファの管理番号
@@ -170,7 +187,34 @@ int Engine::Initialize() {
 	//	バッファの作成
 	glCreateBuffers(1, &ibo);
 	//	GPUメモリを確保しデータをコピーする
-	glNamedBufferStorage(ibo, sizeof(indexData), indexData, 0);
+	glNamedBufferStorage(ibo, sizeof(uint16_t) * 40000, nullptr, 0);
+
+	//	図形データから描画パラメータを作成し、データをGPUメモリにコピーする
+	drawParamList.reserve(std::size(meshes));
+	for (const auto& mesh : meshes) {
+		GLuint tmp[2];	//	バッファ用一時変数
+		glCreateBuffers(2, tmp);
+		//	GPUのメモリを確保
+		glNamedBufferStorage(tmp[0], mesh.vertexSize, mesh.vertexData, 0);
+		glNamedBufferStorage(tmp[1], mesh.indexSize, mesh.indexData, 0);
+		//	データをコピー
+		glCopyNamedBufferSubData(tmp[0], vbo, 0, vboSize, mesh.vertexSize);
+		glCopyNamedBufferSubData(tmp[1], ibo, 0, iboSize, mesh.indexSize);
+		glDeleteBuffers(2, tmp);	//	一時バッファを削除
+
+		//	描画パラメータを作成
+		DrawParam param;
+		param.mode = GL_TRIANGLES;
+		param.count = static_cast<GLsizei>(mesh.indexSize / sizeof(uint16_t));
+		param.indices = reinterpret_cast<void*>(iboSize);
+		param.baseVertex = static_cast<GLint>(vboSize / sizeof(Vertex));
+		drawParamList.push_back(param);		//	描画パラメータを追加
+
+		//	バッファのサイズを更新
+		vboSize += mesh.vertexSize;
+		iboSize += mesh.indexSize;
+	}
+
 
 
 	//	頂点属性(Vertex Attribute)配列の管理番号
@@ -277,6 +321,10 @@ void Engine::Render() {
 
 	//	ゲームオブジェクトの描画
 	for (const auto& obj : gameObjects) {
+		//	図形番号が対象外の場合は描画しない
+		if (obj->meshId < 0 || obj->meshId >= drawParamList.size())
+			continue;
+
 		glProgramUniform4fv(prog, 100, 1, obj->color);
 		glProgramUniform3fv(prog, 0, 1, &obj->scale.x);
 		glProgramUniform3fv(prog, 1, 1, &obj->position.x);
@@ -289,7 +337,9 @@ void Engine::Render() {
 		}
 
 		//	図形を描画
-		glDrawElementsInstanced(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, 0, 1);
+		const DrawParam& param = drawParamList[obj->meshId];
+		glDrawElementsInstancedBaseVertex(
+			param.mode, param.count, GL_UNSIGNED_SHORT, param.indices, 1, param.baseVertex);
 	}
 
 

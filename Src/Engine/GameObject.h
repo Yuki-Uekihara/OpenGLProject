@@ -33,7 +33,7 @@ public:
 	Vector3 scale = { 1.0f, 1.0f, 1.0f };			//	拡大率
 	float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };	//	色
 	TexturePtr texColor;							//	カラーテクスチャ
-
+	int meshId = -1;								//	図形の番号
 
 public:
 	GameObject() = default;
