@@ -6,6 +6,7 @@
 #define _MAINGAMESCENE_H_
 
 #include "Engine/Scene.h"
+#include "Engine/VecMath.h"
 #include <vector>
 
 /*
@@ -25,6 +26,8 @@ public:
 
 public:
 	virtual bool Initialize(Engine& engine) override;
+	virtual void Update(Engine& engine, float deltaTime) override;
+
 
 private:
 	inline char GetMapData(int x, int y) const {
@@ -34,6 +37,10 @@ private:
 	inline char& GetMapData(int x, int y) {
 		return map[y * mapSizeX + x];
 	}
+
+	void MapPosition(const Vector3& position, int& mapX, int& mapY) const;
+
+	Vector3 AdjustPosition(const Vector3& position, const Vector3& size) const;
 };
 
 #endif // !_MAINGAMESCENE_H_

@@ -47,7 +47,7 @@ void main() {
 	gl_Position.xy *= aspectRatioAndScaleFov;
 
 	//	[“x’l‚ÌŒvZŒ‹‰Ê‚ª -1 ~ +1 ‚É‚È‚é‚æ‚¤‚ÉA, B‚ğŒvZ
-	const float near = 0.5f;
+	const float near = 0.35f;
 	const float far = 1000.0f;
 	const float A = -2 * far * near / (far - near);
 	const float B = (far + near) / (far - near);

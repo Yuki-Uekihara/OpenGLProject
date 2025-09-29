@@ -136,6 +136,7 @@
     <None Include="Res\standard.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Engine\Collision.cpp" />
     <ClCompile Include="Src\Engine\Engine.cpp" />
     <ClCompile Include="Src\Engine\GameObject.cpp" />
     <ClCompile Include="Src\Engine\Texture.cpp" />
@@ -144,6 +145,7 @@
     <ClCompile Include="Src\MainGameScene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Engine\Collision.h" />
     <ClInclude Include="Src\Engine\Component.h" />
     <ClInclude Include="Src\Engine\Engine.h" />
     <ClInclude Include="Src\Engine\GameObject.h" />

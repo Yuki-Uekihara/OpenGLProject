@@ -4,6 +4,7 @@
 
 #include "MainGameScene.h"
 #include "Engine/Engine.h"
+#include "Engine/Collision.h"
 #include <fstream>
 #include <string>
 
@@ -73,4 +74,111 @@ bool MainGameScene::Initialize(Engine& engine) {
 
 
 	return true;	//	初期化成功
+}
+
+/*
+ *	シーンを更新
+ */
+void MainGameScene::Update(Engine& engine, float deltaTime) {
+	constexpr Vector3 playerSize = { 1.0f, 1.5f, 1.0f };
+	GameObject& camera = engine.GetMainCamera();
+	camera.position = AdjustPosition(camera.position, playerSize);
+}
+
+/*
+ *	ワールド座標に対するマップ座標を取得する
+ *	@param	position	ワールド座標
+ *	@param	mapX		マップ座標X
+ *	@param	mapY		マップ座標Y
+ */
+void MainGameScene::MapPosition(const Vector3& position, int& mapX, int& mapY) const {
+	mapX = static_cast<int>(position.x / squareSize);
+	mapY = static_cast<int>(position.z / squareSize);
+}
+
+/*
+ *	壁にめり込まない座標を取得する
+ *	@param	position	物体の座標
+ *	@param	size		物体の大きさ
+ *	@return				壁に埋まらない座標
+ */
+Vector3 MainGameScene::AdjustPosition(const Vector3& position, const Vector3& size) const {
+	//	マップ座標を求める
+	int mapX, mapY;
+	MapPosition(position, mapX, mapY);
+	
+	//	隣接するマス目の位置
+	constexpr struct {
+		int x, y;
+	} neighborOffsets[] = {
+		{ +0, -1 }, { +0, +1 }, { -1, +0 }, { +1, +0 },	//	上下左右
+		{ -1, -1 }, { +1, -1 }, { -1, +1 }, { +1, +1 },	//	斜め
+	};
+
+	//	周囲のマスを調べ、壁があったらAABBを作成する
+	std::vector<AABB> walls;
+	walls.reserve(std::size(neighborOffsets));
+	for (const auto& ofs : neighborOffsets) {
+		//	範囲外の場合は処理しない
+		const int x = mapX + ofs.x;
+		if (x < 0 || x >= mapSizeX)
+			continue;
+
+		const int y = mapY + ofs.y;
+		if (y < 0 || y >= mapSizeY)
+			continue;
+
+		//	マス(x, y) に壁があるかどうか
+		if (GetMapData(x, y) == '#') {
+			//	AABBを作成
+			AABB aabb;
+			aabb.min = {
+				static_cast<float>(x) * squareSize,
+				-1,
+				static_cast<float>(y) * squareSize
+			};
+			aabb.max = {
+				aabb.min.x + squareSize, 1, aabb.min.z + squareSize
+			};
+			walls.push_back(aabb);
+		}
+	}
+
+	//	物体のAABB
+	AABB a;
+	a.min = {
+		position.x - size.x * 0.5f,
+		position.y - size.y * 0.5f,
+		position.z - size.z * 0.5f
+	};
+	a.max = {
+		position.x + size.x * 0.5f,
+		position.y + size.y * 0.5f,
+		position.z + size.z * 0.5f
+	};
+
+	//	物体と壁の衝突判定
+	Vector3 newPos = position;
+	for (const auto& w : walls) {
+		Vector3 penetration;
+		if (Intersect(a, w, penetration)) {
+			//	交差しているので座標を補正
+			newPos.x -= penetration.x;
+			newPos.y -= penetration.y;
+			newPos.z -= penetration.z;
+
+			a.min = {
+				a.min.x - penetration.x,
+				a.min.y - penetration.y,
+				a.min.z - penetration.z
+			};
+			a.max = {
+				a.max.x + penetration.x,
+				a.max.y + penetration.y,
+				a.max.z + penetration.z
+			};
+		}
+	}
+
+	return newPos;
 }
