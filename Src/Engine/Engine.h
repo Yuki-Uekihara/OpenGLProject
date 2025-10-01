@@ -43,6 +43,13 @@ private:
 
 	GLsizei indexCount = 0;
 
+	//	ワールド座標系のコライダーを表す構造体
+	struct WorldCollider {
+		AABBColliderPtr origin;
+		AABB world;
+	};
+	using WorldColliderList = std::vector<WorldCollider>;
+
 public:
 	Engine() = default;
 	~Engine() = default;
@@ -55,6 +62,7 @@ private:
 	void Render();
 
 	void UpdateGameObject(float deltaTime);
+	void HandleGameObjectCollision();
 	void RemoveGameObject();
 public:
 	/*

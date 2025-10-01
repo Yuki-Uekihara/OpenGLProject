@@ -8,10 +8,12 @@
 #include "VecMath.h"
 #include "Component.h"
 #include "Texture.h"
+#include "AABBCollider.h"
 
 #include <memory>
 #include <vector>
 #include <string>
+#include <type_traits>
 
 //	前方宣言
 class Engine;
@@ -24,7 +26,8 @@ class GameObject {
 private:
 	Engine* engine = nullptr;						//	エンジンのアドレス
 	bool isDestroyed = false;						//	削除されているかどうか
-	std::vector<ComponentPtr> gameObjects;			//	コンポーネント配列
+	std::vector<ComponentPtr> components;			//	コンポーネント配列
+	std::vector<AABBColliderPtr> colliders;			//	コライダー配列
 
 public:
 	std::string name;								//	名前
@@ -60,7 +63,10 @@ public:
 	std::shared_ptr<T> AddComponent() {
 		auto p = std::make_shared<T>();
 		p->owner = this;
-		gameObjects.push_back(p);
+
+		if constexpr (std::is_base_of_v<AABBCollider, T>)
+			colliders.push_back(p);
+		components.push_back(p);
 		p->Awake();
 		return p;
 	}

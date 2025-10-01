@@ -145,6 +145,7 @@
     <ClCompile Include="Src\MainGameScene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Engine\AABBCollider.h" />
     <ClInclude Include="Src\Engine\Collision.h" />
     <ClInclude Include="Src\Engine\Component.h" />
     <ClInclude Include="Src\Engine\Engine.h" />

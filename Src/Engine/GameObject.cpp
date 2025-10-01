@@ -9,7 +9,7 @@
  *	スタートイベント
  */
 void GameObject::Start() {
-	for (auto& c : gameObjects) {
+	for (auto& c : components) {
 		if (!c->isStarted) {
 			c->Start();
 			c->isStarted = true;
@@ -21,7 +21,7 @@ void GameObject::Start() {
  *	更新イベント
  */
 void GameObject::Update(float deltaTime) {
-	for (auto& c : gameObjects) {
+	for (auto& c : components) {
 		c->Update(deltaTime);
 	}
 	RemoveComponent();
@@ -33,7 +33,7 @@ void GameObject::Update(float deltaTime) {
 void GameObject::OnCollision(
 	const ComponentPtr& self,
 	const ComponentPtr& other) {
-	for (auto& c : gameObjects) {
+	for (auto& c : components) {
 		c->OnCollision(self, other);
 	}
 }
@@ -42,7 +42,7 @@ void GameObject::OnCollision(
  *	削除イベント
  */
 void GameObject::OnDestroy() {
-	for (auto& c : gameObjects) {
+	for (auto& c : components) {
 		c->OnDestroy();
 	}
 }
@@ -52,23 +52,30 @@ void GameObject::OnDestroy() {
  */ 
 void GameObject::RemoveComponent() {
 	//	コンポーネントがなければ処理しない
-	if (gameObjects.empty())
+	if (components.empty())
 		return;
 
 	//	破棄の予定の有無でコンポーネントを分ける
 	const auto itr = std::stable_partition(
-		gameObjects.begin(), gameObjects.end(),
+		components.begin(), components.end(),
 		[](const auto& p) { return !p->IsDestroyed(); }
 	);
 	
 	//	削除予定のコンポーネントを別の配列に移動
 	std::vector<ComponentPtr> destroyList(
 		std::move_iterator(itr),
-		std::move_iterator(gameObjects.end())
+		std::move_iterator(components.end())
 	);
 
 	//	配列から移動済みのコンポーネントを削除
-	gameObjects.erase(itr, gameObjects.end());
+	components.erase(itr, components.end());
+
+	//	collidersも削除
+	const auto itr2 = std::remove_if(
+		colliders.begin(), colliders.end(),
+		[](const auto& p) { return !p->IsDestroyed(); }
+	);
+	colliders.erase(itr2, colliders.end());
 
 	//	破棄予定のコンポーネントにイベント発火
 	for (auto& c : destroyList) {

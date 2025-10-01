@@ -365,6 +365,45 @@ void Engine::UpdateGameObject(float deltaTime) {
 }
 
 /*
+ *	ゲームオブジェクトの衝突を処理する
+ */
+void Engine::HandleGameObjectCollision() {
+	//	ワールド座標系の衝突判定を作成
+	std::vector<WorldColliderList> colliders;
+	colliders.reserve(gameObjects.size());
+
+	//	全てのオブジェクトでコライダーの座標を計算
+	for (const auto obj : gameObjects) {
+		//	コライダーを持っていないオブジェクトは処理しない
+		if (obj->colliders.empty())
+			continue;
+
+		WorldColliderList list(obj->colliders.size());
+
+		for (int i = 0; i < obj->colliders.size(); i++) {
+			//	オリジナルのコライダーをコピー
+			list[i].origin = obj->colliders[i];
+			list[i].world = obj->colliders[i]->aabb;
+
+			//	ローカル座標をワールド座標に変換
+			list[i].world.min.x *= obj->scale.x;
+			list[i].world.min.y *= obj->scale.y;
+			list[i].world.min.z *= obj->scale.z;
+			list[i].world.max.x *= obj->scale.x;
+			list[i].world.max.y *= obj->scale.y;
+			list[i].world.max.z *= obj->scale.z;
+			list[i].world.min.x += obj->position.x;
+			list[i].world.min.x += obj->position.y;
+			list[i].world.min.x += obj->position.z;
+			list[i].world.max.x += obj->position.x;
+			list[i].world.max.x += obj->position.y;
+			list[i].world.max.x += obj->position.z;
+		}
+		colliders.push_back(list);
+	}
+}
+
+/*
  *	破棄予定のゲームオブジェクトを削除する
  */
 void Engine::RemoveGameObject() {
