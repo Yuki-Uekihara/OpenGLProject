@@ -20,6 +20,8 @@ private:
 	float squareSize = 2;					//	1マスの大きさ
 	float squareScale = squareSize / 2;		//	1マスの拡大率
 
+	std::shared_ptr<class PlayerComponent> playerComponent;	//	プレイヤー
+
 public:
 	MainGameScene() = default;
 	virtual ~MainGameScene() = default;

@@ -11,6 +11,7 @@
 
  //	図形データ
 #include "../../Res/MeshData/crystal_mesh.h"
+#include "../../Res/MeshData/plane_xy_mesh.h"
 
 
  /*
@@ -178,6 +179,7 @@ int Engine::Initialize() {
 	const MeshData meshes[] = {
 		{ sizeof(vertexData), sizeof(indexData), vertexData, indexData },
 		{ sizeof(crystal_vertices), sizeof(crystal_indices), crystal_vertices, crystal_indices },
+		{ sizeof(plane_xy_vertices), sizeof(plane_xy_indices), plane_xy_vertices, plane_xy_indices },
 
 	};
 
@@ -241,10 +243,6 @@ int Engine::Initialize() {
 	//	一元管理配列の容量を予約
 	gameObjects.reserve(1000);
 
-	//	カメラを操作するプレイヤーコンポーネントを生成
-	auto player = Create<GameObject>("player", { 0.0f, 10.0f, 0.0f });
-	player->AddComponent<PlayerComponent>();
-
 	//	カメラの設定
 	camera.position = { 3, 1, 3 };
 	camera.rotation.y = 3.14159265f;
@@ -281,6 +279,7 @@ void Engine::Update() {
 
 
 	UpdateGameObject(deltaTime);
+	HandleGameObjectCollision();
 }
 
 /*
@@ -386,20 +385,63 @@ void Engine::HandleGameObjectCollision() {
 			list[i].world = obj->colliders[i]->aabb;
 
 			//	ローカル座標をワールド座標に変換
-			list[i].world.min.x *= obj->scale.x;
-			list[i].world.min.y *= obj->scale.y;
-			list[i].world.min.z *= obj->scale.z;
-			list[i].world.max.x *= obj->scale.x;
-			list[i].world.max.y *= obj->scale.y;
-			list[i].world.max.z *= obj->scale.z;
-			list[i].world.min.x += obj->position.x;
-			list[i].world.min.x += obj->position.y;
-			list[i].world.min.x += obj->position.z;
-			list[i].world.max.x += obj->position.x;
-			list[i].world.max.x += obj->position.y;
-			list[i].world.max.x += obj->position.z;
+			list[i].world.min = Vector3::Scale(list[i].world.min, obj->scale);
+			list[i].world.max = Vector3::Scale(list[i].world.max, obj->scale);
+			list[i].world.min += obj->position;
+			list[i].world.max += obj->position;
 		}
 		colliders.push_back(list);
+	}
+
+	if (colliders.size() >= 2) {
+		//	ゲームオブジェクト毎の衝突判定
+		for (auto a = colliders.begin(); a != colliders.end() - 1; a++) {
+			const GameObject* objA = a->at(0).origin->GetOwner();
+			//	削除済みは処理しない
+			if (objA->IsDestroyed())
+				continue;
+
+			for (auto b = a + 1; b != colliders.end(); b++) {
+				const GameObject* objB = b->at(0).origin->GetOwner();
+				//	削除済みは処理しない
+				if (objB->IsDestroyed())
+					continue;
+
+				//	コライダー単位の衝突判定
+				HandleWorldColliderCollision(&(*a), &*b);
+			}
+		}
+	}
+}
+
+/*
+ *	コライダー単位の当たり判定
+ *	@param	a	判定対象のコライダー配列1
+ *	@param	b	判定対象のコライダー配列2
+ */
+void Engine::HandleWorldColliderCollision(WorldColliderList* a, WorldColliderList* b) {
+	//	コライダー毎の衝突判定
+	for (const auto& colA : *a) {
+		for (const auto& colB : *b) {
+			//	スタティックなコライダー同士では処理しない
+			if (colA.origin->isStatic && colB.origin->isStatic)
+				continue;
+
+			//	衝突判定
+			Vector3 penetration;
+			if (Intersect(colA.world, colB.world, penetration)) {
+				GameObject* objA = colA.origin->GetOwner();
+				GameObject* objB = colB.origin->GetOwner();
+
+				//	イベントの発火
+				objA->OnCollision(colA.origin, colB.origin);
+				objB->OnCollision(colB.origin, colA.origin);
+
+				//	イベントの結果、どちらかが削除予定が入ったら処理を抜ける
+				if (objA->IsDestroyed() || objB->IsDestroyed())
+					return;
+			}
+		}
 	}
 }
 

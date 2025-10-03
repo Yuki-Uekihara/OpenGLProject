@@ -63,6 +63,7 @@ private:
 
 	void UpdateGameObject(float deltaTime);
 	void HandleGameObjectCollision();
+	void HandleWorldColliderCollision(WorldColliderList* a, WorldColliderList* b);
 	void RemoveGameObject();
 public:
 	/*

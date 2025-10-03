@@ -5,6 +5,8 @@
 #include "MainGameScene.h"
 #include "Engine/Engine.h"
 #include "Engine/Collision.h"
+#include "PlayerComponent.h"
+
 #include <fstream>
 #include <string>
 
@@ -71,7 +73,14 @@ bool MainGameScene::Initialize(Engine& engine) {
 		}
 	}
 
-
+	//	カメラを操作するプレイヤーコンポーネントを生成
+	auto player = engine.Create<GameObject>("player", { 0.0f, 10.0f, 0.0f });
+	playerComponent = player->AddComponent<PlayerComponent>();
+	auto collider = player->AddComponent<AABBCollider>();
+	collider->aabb = {
+		{ -0.5f, -1.0f, -0.5f },
+		{  0.5f,  1.0f,  0.5f },
+	};
 
 	return true;	//	初期化成功
 }
@@ -83,6 +92,11 @@ void MainGameScene::Update(Engine& engine, float deltaTime) {
 	constexpr Vector3 playerSize = { 1.0f, 1.5f, 1.0f };
 	GameObject& camera = engine.GetMainCamera();
 	camera.position = AdjustPosition(camera.position, playerSize);
+
+	//	カメラのパラメータをプレイヤーオブジェクトにコピー
+	auto player = playerComponent->GetOwner();
+	player->position = camera.position;
+	player->rotation = camera.rotation;
 }
 
 /*
