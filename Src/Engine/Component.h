@@ -6,7 +6,6 @@
 #define _COMPONENT_H_
 
 #include <memory>
-#include "GameObject.h"
 
 //	‘O•ûéŒ¾
 class GameObject;

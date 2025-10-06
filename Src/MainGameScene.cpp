@@ -6,6 +6,7 @@
 #include "Engine/Engine.h"
 #include "Engine/Collision.h"
 #include "PlayerComponent.h"
+#include "GoalEvent.h"
 
 #include <fstream>
 #include <string>
@@ -69,6 +70,18 @@ bool MainGameScene::Initialize(Engine& engine) {
 				crystal->scale = { 0.5f, 0.5f, 0.5f };
 				crystal->texColor = texCrystalBlue;
 				crystal->meshId = 1;
+			}
+
+			//	ゴールオブジェクトを生成
+			else if (GetMapData(x, y) == 'G') {
+				auto goal = engine.Create<GameObject>("goal", { posX, 1, posZ });
+				goal->AddComponent<GoalEvent>();
+				auto collider = goal->AddComponent<AABBCollider>();
+				collider->aabb = {
+					{ -1.0f, -1.0f, -1.0f },
+					{  1.0f,  1.0f,  1.0f },
+				};
+				collider->isTrigger = true;
 			}
 		}
 	}

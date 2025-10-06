@@ -73,7 +73,7 @@ void GameObject::RemoveComponent() {
 	//	colliders‚àíœ
 	const auto itr2 = std::remove_if(
 		colliders.begin(), colliders.end(),
-		[](const auto& p) { return !p->IsDestroyed(); }
+		[](const auto& p) { return p->IsDestroyed(); }
 	);
 	colliders.erase(itr2, colliders.end());
 
