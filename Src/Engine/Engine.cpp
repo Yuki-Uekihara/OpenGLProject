@@ -303,23 +303,57 @@ void Engine::Render() {
 	//	アスペクト比を計算
 	const float aspectRatio =
 		static_cast<float>(fbWidth) / static_cast<float>(fbHeight);
-
-	const float degFovY = 60;	//	垂直の視野角
-	const float radFovY = degFovY * 3.141592f / 180.0f;
-	const float scaleFov = tanf(radFovY / 2);	//	視野角による拡大率
-
 	//	ユニフォーム変数にデータをコピー
 	//const float timer = static_cast<float>(glfwGetTime());
 	//glProgramUniform1f(prog, 0, timer);
-	glProgramUniform2f(prog, 3, 1 / (aspectRatio * scaleFov), 1 / scaleFov);
+	glProgramUniform2f(prog, 3, fovScale / aspectRatio, fovScale);
 	glProgramUniform3fv(prog, 4, 1, &camera.position.x);
 	glProgramUniform2f(prog, 5, sinf(-camera.rotation.y), cosf(-camera.rotation.y));
 
 	//	深度テストの有効化
 	glEnable(GL_DEPTH_TEST);
 
-	//	ゲームオブジェクトの描画
-	for (const auto& obj : gameObjects) {
+	//	半透明合成の有効化
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
+
+	//	ゲームオブジェクトをレンダーキュー順にソート
+	std::stable_sort(
+		gameObjects.begin(), gameObjects.end(),
+		[](const GameObjectPtr& a, const GameObjectPtr& b) { return a->renderQueue < b->renderQueue; }
+	);
+
+	//	overlayキューの先頭検索
+	//	lower_bound 「検索条件を満たさない最初の要素のイテレータ」を返す
+	const auto overlayBegin = std::lower_bound(
+		gameObjects.begin(), gameObjects.end(),		//	範囲の先頭, 範囲の終端
+		RenderQueue_overlay,						//	検索する値
+		[](const GameObjectPtr& obj, int v) {		//	検索する条件
+			return obj->renderQueue < v;
+		}										
+	);
+
+	//	overlay以前の描画
+	DrawGameObject(gameObjects.begin(), overlayBegin);
+
+	//	overlay以降の描画
+	glDisable(GL_DEPTH_TEST);
+	DrawGameObject(overlayBegin, gameObjects.end());
+
+
+
+	glfwSwapBuffers(window);
+	glfwPollEvents();
+}
+
+/*
+ *	ゲームオブジェクト配列を描画する 
+ */
+void Engine::DrawGameObject(GameObjectList::iterator begin, GameObjectList::iterator end) {
+	for (GameObjectList::iterator i = begin; i != end; ++i) {
+		const auto& obj = *i;
+
 		//	図形番号が対象外の場合は描画しない
 		if (obj->meshId < 0 || obj->meshId >= drawParamList.size())
 			continue;
@@ -340,12 +374,6 @@ void Engine::Render() {
 		glDrawElementsInstancedBaseVertex(
 			param.mode, param.count, GL_UNSIGNED_SHORT, param.indices, 1, param.baseVertex);
 	}
-
-
-
-
-	glfwSwapBuffers(window);
-	glfwPollEvents();
 }
 
 /*

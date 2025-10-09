@@ -110,6 +110,18 @@ void MainGameScene::Update(Engine& engine, float deltaTime) {
 	auto player = playerComponent->GetOwner();
 	player->position = camera.position;
 	player->rotation = camera.rotation;
+
+	//	‚Ä‚·‚Æ
+	float fovY = engine.GetFovY();
+	if (engine.GetKey(GLFW_KEY_1)) {
+		fovY -= 30.0f * deltaTime;
+		fovY = std::max(10.0f, fovY);
+	}
+	if (engine.GetKey(GLFW_KEY_2)) {
+		fovY += 30.0f * deltaTime;
+		fovY = std::min(120.0f, fovY);
+	}
+	engine.SetFovY(fovY);
 }
 
 /*

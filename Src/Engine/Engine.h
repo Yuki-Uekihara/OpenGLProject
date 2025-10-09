@@ -20,6 +20,10 @@ class Engine {
 private:
 	GLFWwindow* window = nullptr;				//	ウィンドウオブジェクト
 	const std::string title = "OpenGLGame";		//	ウィンドウのタイトル
+	float degFovY = 60;							//	垂直視野角(度数法)
+	float radFovY = degFovY * Rad2Deg;
+	float fovScale = 1 / std::tanf(radFovY / 2);	//	視野角による拡大率の逆数
+	
 	GLuint vs = 0;
 	GLuint fs = 0;
 	GLuint prog = 0;
@@ -61,6 +65,7 @@ private:
 	void Update();
 	void Render();
 
+	void DrawGameObject(GameObjectList::iterator begin, GameObjectList::iterator end);
 	void UpdateGameObject(float deltaTime);
 	void HandleGameObjectCollision();
 	void HandleWorldColliderCollision(WorldColliderList* a, WorldColliderList* b);
@@ -106,6 +111,14 @@ public:
 		return glfwGetKey(window, key) == GLFW_PRESS;
 	}
 
+	//	視野角の管理
+	inline float GetFovY() const { return degFovY; }
+	inline void SetFovY(float fovY) { 
+		degFovY = fovY;
+		radFovY = degFovY * Deg2Rad;
+		fovScale = 1 / std::tanf(radFovY / 2);
+	}
+	inline float GetFovScale() const { return fovScale; }
 };
 
 #endif // !_ENGINE_H_

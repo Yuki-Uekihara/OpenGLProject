@@ -4,6 +4,7 @@
 
 #include "GoalEvent.h"
 #include "Engine/Engine.h"
+#include "Engine/UILayout.h"
 
 /*
  *	ゴール演出の衝突イベント
@@ -19,8 +20,11 @@ void GoalEvent::OnCollision(const ComponentPtr& self, const ComponentPtr& other)
 
 	//	メッセージオブジェクトを生成
 	Engine* engine = GetOwner()->GetEngine();
-	auto obj = engine->Create<GameObject>("goal text");
-	obj->position = GetOwner()->position;
+	auto obj = engine->Create<GameObject>("goal text", Vector3::back);
+	
 	obj->texColor = std::make_shared<Texture>("Res/goal_text.tga");
 	obj->meshId = 2;
+	obj->renderQueue = RenderQueue_overlay;
+	//	コンポーネントの追加
+	obj->AddComponent<UILayout>();
 }

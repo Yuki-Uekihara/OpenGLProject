@@ -140,6 +140,7 @@
     <ClCompile Include="Src\Engine\Engine.cpp" />
     <ClCompile Include="Src\Engine\GameObject.cpp" />
     <ClCompile Include="Src\Engine\Texture.cpp" />
+    <ClCompile Include="Src\Engine\UILayout.cpp" />
     <ClCompile Include="Src\Engine\VecMath.cpp" />
     <ClCompile Include="Src\glad\src\glad.c" />
     <ClCompile Include="Src\GoalEvent.cpp" />
@@ -148,6 +149,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Engine\AABBCollider.h" />
+    <ClInclude Include="Src\Engine\Billboard.h" />
     <ClInclude Include="Src\Engine\Collision.h" />
     <ClInclude Include="Src\Engine\Component.h" />
     <ClInclude Include="Src\Engine\Engine.h" />
@@ -155,6 +157,7 @@
     <ClInclude Include="Src\Engine\Mesh.h" />
     <ClInclude Include="Src\Engine\Scene.h" />
     <ClInclude Include="Src\Engine\Texture.h" />
+    <ClInclude Include="Src\Engine\UILayout.h" />
     <ClInclude Include="Src\Engine\VecMath.h" />
     <ClInclude Include="Src\glad\include\glad\glad.h" />
     <ClInclude Include="Src\glad\include\KHR\khrplatform.h" />

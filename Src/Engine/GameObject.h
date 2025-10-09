@@ -19,6 +19,15 @@
 class Engine;
 
 /*
+ *	描画の順番
+ */
+enum RenderQueue {
+	RenderQueue_geometry = 2000,	//	一般的な図形
+	RenderQueue_overlay = 4000,		//	UI, 全画面用エフェクト
+	RenderQueue_max = 5000,			//	最大値
+};
+
+/*
  *	オブジェクトの基底クラス 
  */
 class GameObject {
@@ -37,6 +46,7 @@ public:
 	float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };	//	色
 	TexturePtr texColor;							//	カラーテクスチャ
 	int meshId = -1;								//	図形の番号
+	int renderQueue = RenderQueue_geometry;			//	描画順
 
 public:
 	GameObject() = default;
