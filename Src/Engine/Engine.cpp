@@ -11,6 +11,7 @@
 
  //	図形データ
 #include "../../Res/MeshData/crystal_mesh.h"
+#include "../../Res/MeshData/wall_mesh.h"
 #include "../../Res/MeshData/plane_xy_mesh.h"
 
 
@@ -179,6 +180,7 @@ int Engine::Initialize() {
 	const MeshData meshes[] = {
 		{ sizeof(vertexData), sizeof(indexData), vertexData, indexData },
 		{ sizeof(crystal_vertices), sizeof(crystal_indices), crystal_vertices, crystal_indices },
+		{ sizeof(wall_vertices), sizeof(wall_indices), wall_vertices, wall_indices },
 		{ sizeof(plane_xy_vertices), sizeof(plane_xy_indices), plane_xy_vertices, plane_xy_indices },
 
 	};

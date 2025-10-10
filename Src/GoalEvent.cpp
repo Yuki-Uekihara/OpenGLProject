@@ -20,11 +20,5 @@ void GoalEvent::OnCollision(const ComponentPtr& self, const ComponentPtr& other)
 
 	//	メッセージオブジェクトを生成
 	Engine* engine = GetOwner()->GetEngine();
-	auto obj = engine->Create<GameObject>("goal text", Vector3::back);
-	
-	obj->texColor = std::make_shared<Texture>("Res/goal_text.tga");
-	obj->meshId = 2;
-	obj->renderQueue = RenderQueue_overlay;
-	//	コンポーネントの追加
-	obj->AddComponent<UILayout>();
+	engine->CreateUIObject<UILayout>("Res/goal_text.tga", { 0.0f, 0.0f }, 0.1f);
 }

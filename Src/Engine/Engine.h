@@ -8,10 +8,23 @@
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 #include <string>
+#include <utility>	//	std::pair
 
 #include "GameObject.h"
 #include "Scene.h"
 #include "Mesh.h"
+
+
+//	メッシュ番号
+//	Initialize関数にある meshes 配列と順番を合わせる
+//	配列に変更があった場合はこちらも変更する
+enum MeshId {
+	MeshId_box,
+	MeshId_crystal,
+	MeshId_wall,
+	MeshId_plane_xy
+};
+
 
 /*
  *	ゲームエンジン
@@ -73,6 +86,7 @@ private:
 public:
 	/*
 	 *	ゲームオブジェクトを生成する
+	 *	@tparam	ゲームオブジェクトまたはその派生クラス
 	 *	@param	name
 	 *	@param	position
 	 *	@param	rotation
@@ -94,6 +108,33 @@ public:
 		return p;
 	}	
 
+	/*
+	 *	UIオブジェクトを作成する
+	 *	@tparam	ゲームオブジェクトに割り当てるUILayoutまたはその派生クラス
+	 *	@param	filename
+	 *	@param	position
+	 *	@param	scale
+	 */
+	template <class T>
+	std::pair<GameObjectPtr, std::shared_ptr<T>> CreateUIObject(
+		const char* filename, const Vector2& position, float scale
+	) {
+		//	メッセージオブジェクトを生成
+		auto obj = Create<GameObject>(filename, { position.x, position.y, 0 });
+		obj->texColor = std::make_shared<Texture>(filename);
+		obj->meshId = MeshId_plane_xy;
+		obj->renderQueue = RenderQueue_overlay;
+
+		//	画像サイズに応じて拡大率を調整
+		const float aspectRatio = obj->texColor->GetAspectRatio();
+		obj->scale = { scale * aspectRatio, scale, 1.0f };
+
+		//	コンポーネントの追加
+		auto component = obj->AddComponent<T>();
+
+		return { obj, component };
+	}
+
 	//	すべてのゲームオブジェクトを削除する
 	void ClearGameObjects();
 
@@ -109,6 +150,35 @@ public:
 	//	キー入力の検知
 	inline bool GetKey(int key) const {
 		return glfwGetKey(window, key) == GLFW_PRESS;
+	}
+
+	//	マウスカーソルの座標を取得する
+	inline Vector2 GetMousePosition() const {
+		//	スクリーン座標系のカーソル座標を取得
+		double x, y;
+		glfwGetCursorPos(window, &x, &y);
+
+		//	型を合わせる
+		const Vector2 pos = { static_cast<float>(x), static_cast<float>(y) };
+
+		//	UILayerの座標系と併せるために スクリーン座標系からカメラ座標系に変換
+		//	カメラ座標系のマウス座標.x =
+		//		((スクリーン座標系のマウス座標.x / 画面サイズ.x) * 2 - 1) * アスペクト比
+		//	
+		//	カメラ座標系のマウス座標.y =
+		//		((スクリーン座標系のマウス座標.y / 画面サイズ.y) * 2 - 1) * -1
+
+		int w, h;
+		glfwGetFramebufferSize(window, &w, &h);
+		const Vector2 framebufferSize = { static_cast<float>(w), static_cast<float>(h) };
+		const float aspectRatio = framebufferSize.x / framebufferSize.y;
+
+		return { (pos.x / framebufferSize.x * 2 - 1) * aspectRatio, (pos.y / framebufferSize.y * 2 - 1) * -1 };
+	}
+
+	//	マウスのボタンの状態を取得する
+	inline bool GetMouseButton(int button) const {
+		return glfwGetMouseButton(window, button) == GLFW_PRESS;
 	}
 
 	//	視野角の管理

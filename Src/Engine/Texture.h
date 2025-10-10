@@ -37,6 +37,11 @@ public:
 
 	//	高さの取得
 	inline int GetHeight() const { return height; }
+
+	//	テクスチャのアスペクト比を取得
+	inline float GetAspectRatio() const {
+		return static_cast<float>(width) / static_cast<float>(height);
+	}
 };
 //	別名定義
 using TexturePtr = std::shared_ptr<Texture>;
