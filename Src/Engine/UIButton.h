@@ -16,6 +16,9 @@ private:
 	bool prevButtonDown = false;		//	前回更新時のマウス左ボタンの状態
 
 public:
+	bool interactable = true;			//	反応するかどうか
+
+public:
 	Vector3 normalColor = { 1.0f, 1.0f, 1.0f };		//	通常色
 	Vector3 highlightColor = { 1.3f, 1.3f, 1.3f };	//	選択色
 	Vector3 pressedColor = { 0.7f, 0.7f, 0.7f };	//	押下色

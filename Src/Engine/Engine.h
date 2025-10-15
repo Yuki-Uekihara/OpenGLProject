@@ -181,6 +181,19 @@ public:
 		return glfwGetMouseButton(window, button) == GLFW_PRESS;
 	}
 
+	//	フレームバッファのサイズを取得する
+	inline Vector2 GetFramebufferSize() const {
+		int w, h;
+		glfwGetFramebufferSize(window, &w, &h);
+		return { static_cast<float>(w), static_cast<float>(h) };
+	}
+
+	//	フレームバッファのアスペクト比を取得する
+	inline float GetAspectRatio() const {
+		const Vector2 size = GetFramebufferSize();
+		return size.x / size.y;
+	}
+
 	//	視野角の管理
 	inline float GetFovY() const { return degFovY; }
 	inline void SetFovY(float fovY) { 

@@ -6,6 +6,7 @@
 #define _GOALEVENT_H_
 
 #include "Engine/Component.h"
+#include "Engine/GameObject.h"
 
 /*
  *	ゴール演出用コンポーネント
@@ -14,9 +15,15 @@ class GoalEvent : public Component {
 private:
 	bool triggerd = false;	//	ゴール判定が起動したらtrue
 
+	GameObjectPtr fadeObject;	//	フェード用オブジェクト
+	float fadeTimer;			//	フェード中のタイマー
+
 public:
 	GoalEvent() = default;
 	virtual ~GoalEvent() = default;
+
+public:
+	virtual void Update(float deltaTime) override;
 
 private:
 	virtual void OnCollision(

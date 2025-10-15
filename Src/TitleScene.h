@@ -14,12 +14,17 @@
  *	ƒ^ƒCƒgƒ‹‰æ–Ê
  */
 class TitleScene : public Scene {
+private:
+	GameObjectPtr fadeObject;
+	float fadeTimer = 0;
+
 public:
 	TitleScene() = default;
 	virtual ~TitleScene() = default;
 
 public:
 	virtual bool Initialize(Engine& engine) override;
+	virtual void Update(Engine& engine, float deltaTIme) override;
 	virtual void Finalize(Engine& engine) override;
 };
 

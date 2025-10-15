@@ -15,6 +15,14 @@ void UIButton::Update(float deltaTime) {
 	GameObject* owner = GetOwner();
 	Engine* engine = owner->GetEngine();
 
+	//	有効・無効チェック
+	if (!interactable) {
+		std::copy_n(&normalColor.x, 3, owner->color);
+		owner->color[3] = 0.75;		//	透明度
+		return;
+	}
+
+
 	const Vector2 mouse = engine->GetMousePosition();
 	if (std::fabsf(mouse.x - basePosition.x) < owner->scale.x &&
 		std::fabsf(mouse.y - basePosition.y) < owner->scale.y) {
