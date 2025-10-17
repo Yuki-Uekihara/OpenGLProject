@@ -7,16 +7,19 @@
 #include "Engine/Collision.h"
 #include "PlayerComponent.h"
 #include "GoalEvent.h"
+#include "EnemySkull.h"
+#include "TitleScene.h"
+#include "Engine/UIButton.h"
 
 #include <fstream>
 #include <string>
 
 
 
-/*
- *	シーンを初期化する
- *	@return	true	成功
- */
+ /*
+  *	シーンを初期化する
+  *	@return	true	成功
+  */
 bool MainGameScene::Initialize(Engine& engine) {
 	//	ファイルからデータを読み込む
 	std::ifstream file("Res/maze00.txt");
@@ -37,6 +40,9 @@ bool MainGameScene::Initialize(Engine& engine) {
 		}
 	}
 
+	//	プレイヤーの初期位置
+	Vector3 startPoint = { 3, 1, 3 };
+
 	//	床を生成
 	auto floor = engine.Create<GameObject>("floor");
 	floor->scale = {
@@ -55,7 +61,7 @@ bool MainGameScene::Initialize(Engine& engine) {
 		for (int x = 0; x < mapSizeX; x++) {
 			const float posX = static_cast<float>(x + 0.5f) * squareSize;
 			const float posZ = static_cast<float>(y + 0.5f) * squareSize;
-			
+
 			//	壁を生成
 			if (GetMapData(x, y) == '#') {
 				auto wall = engine.Create<GameObject>("wall", { posX, 0, posZ });
@@ -63,13 +69,29 @@ bool MainGameScene::Initialize(Engine& engine) {
 				wall->texColor = texwall;
 				wall->meshId = MeshId_wall;
 			}
-			
+
 			//	クリスタルを生成
 			else if (GetMapData(x, y) == 'C') {
 				auto crystal = engine.Create<GameObject>("crystal", { posX, 1, posZ });
 				crystal->scale = { 0.5f, 0.5f, 0.5f };
 				crystal->texColor = texCrystalBlue;
 				crystal->meshId = MeshId_crystal;
+			}
+
+			//	プレーヤーの初期位置を設定
+			else if (GetMapData(x, y) == 'S') {
+				startPoint = { posX, 1, posZ };
+			}
+
+			//	敵を生成
+			else if (GetMapData(x, y) == 'E') {
+				auto enemy = engine.Create<GameObject>("enemy", { posX, 0, posZ });
+				auto component = enemy->AddComponent<EnemySkull>();
+				component->getMapData = [this](const Vector3& position) {
+					int x, y;
+					MapPosition(position, x, y);
+					return GetMapData(x, y);
+					};
 			}
 
 			//	ゴールオブジェクトを生成
@@ -95,6 +117,11 @@ bool MainGameScene::Initialize(Engine& engine) {
 		{  0.5f,  1.0f,  0.5f },
 	};
 
+	//	プレイヤーとカメラの初期位置を設定
+	GameObject& camera = engine.GetMainCamera();
+	player->position = camera.position = startPoint;
+	player->rotation = camera.rotation = { 0.0f, 180.0f * Deg2Rad, 0.0f };
+
 	return true;	//	初期化成功
 }
 
@@ -102,6 +129,20 @@ bool MainGameScene::Initialize(Engine& engine) {
  *	シーンを更新
  */
 void MainGameScene::Update(Engine& engine, float deltaTime) {
+	state(this, engine, deltaTime);
+}
+
+/*
+ *	シーンの終了
+ */
+void MainGameScene::Finalize(Engine& engine) {
+	engine.ClearGameObjects();
+}
+
+/*
+ *	プレイ中の状態のシーンの更新
+ */
+void MainGameScene::StatePlaying(Engine& engine, float deltaTime) {
 	constexpr Vector3 playerSize = { 1.0f, 1.5f, 1.0f };
 	GameObject& camera = engine.GetMainCamera();
 	camera.position = AdjustPosition(camera.position, playerSize);
@@ -122,6 +163,30 @@ void MainGameScene::Update(Engine& engine, float deltaTime) {
 		fovY = std::min(120.0f, fovY);
 	}
 	engine.SetFovY(fovY);
+
+	//	状態が死んでいるかどうか
+	if (playerComponent->GetState() == PlayerComponent::State::Dead) {
+		//	ゲームオーバーの画像を生成
+		engine.CreateUIObject<UILayout>("Res/game_over.tga", { 0.0f, 0.0f }, 0.25f);
+		//	タイトル画面に戻るボタンを生成
+		auto button = engine.CreateUIObject<UIButton>("Res/return_button.tga", { 0.0f, -0.5f }, 0.1f);
+		//	ボタンが押されたときの処理を追加
+		button.second->onClick.push_back(
+			[](UIButton* button) {
+				Engine* engine = button->GetOwner()->GetEngine();
+				engine->SetNextScene<TitleScene>();
+			}
+		);
+		//	状態をゲームオーバーに変更
+		state = &MainGameScene::StateGameOver;
+	}
+}
+
+/*
+ *	ゲームオーバー中の状態のシーンの更新
+ */
+void MainGameScene::StateGameOver(Engine& engine, float deltaTime) {
+
 }
 
 /*
@@ -145,7 +210,7 @@ Vector3 MainGameScene::AdjustPosition(const Vector3& position, const Vector3& si
 	//	マップ座標を求める
 	int mapX, mapY;
 	MapPosition(position, mapX, mapY);
-	
+
 	//	隣接するマス目の位置
 	constexpr struct {
 		int x, y;

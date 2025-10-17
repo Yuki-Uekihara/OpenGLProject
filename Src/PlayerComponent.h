@@ -13,6 +13,17 @@
  */
 class PlayerComponent : public Component {
 public:
+	//	プレイヤーの状態
+	enum class State {
+		Alive,		//	生きている
+		Goal,		//	ゴールした
+		Dead,		//	死んでいる
+	};
+
+private:
+	State state = State::Alive;
+
+public:
 	PlayerComponent() = default;
 	virtual ~PlayerComponent() = default;
 
@@ -20,6 +31,11 @@ public:
 	virtual void Update(float deltaTime) override {
 		Engine* engine = GetOwner()->GetEngine();
 		GameObject& camera = engine->GetMainCamera();
+
+		//	Alive以外の状態では処理しない
+		if (state != State::Alive)
+			return;
+
 
 		//	カメラの移動
 		const float cameraSpeed = 0.05f;
@@ -51,6 +67,26 @@ public:
 			camera.rotation.y += 0.05f;
 		}
 	}
+
+	//	衝突時の処理
+	virtual void OnCollision(const ComponentPtr& self, const ComponentPtr& other) override {
+		//	生きている状態でなければ処理しない
+		if (state != State::Alive)
+			return;
+
+		//	当たったオブジェクトで状態を遷移
+		const auto& name = other->GetOwner()->name;
+
+		if (name == "enemy") {
+			state = State::Dead;
+		}
+		else if (name == "goal") {
+			state = State::Goal;
+		}
+	}
+
+public:
+	inline State GetState() const { return state; }
 
 };
 

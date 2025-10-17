@@ -8,6 +8,7 @@
 #include "Engine/Scene.h"
 #include "Engine/VecMath.h"
 #include <vector>
+#include <functional>
 
 /*
  *	メインゲームシーン
@@ -22,6 +23,10 @@ private:
 
 	std::shared_ptr<class PlayerComponent> playerComponent;	//	プレイヤー
 
+	//	別名定義
+	using State = std::function<void(MainGameScene*, Engine&, float)>;
+	State state = &MainGameScene::StatePlaying;
+
 public:
 	MainGameScene() = default;
 	virtual ~MainGameScene() = default;
@@ -29,7 +34,12 @@ public:
 public:
 	virtual bool Initialize(Engine& engine) override;
 	virtual void Update(Engine& engine, float deltaTime) override;
+	virtual void Finalize(Engine& engine) override;
 
+public:
+	//	状態に対応する更新
+	void StatePlaying(Engine& engine, float deltaTime);
+	void StateGameOver(Engine& engine, float deltaTime);
 
 private:
 	inline char GetMapData(int x, int y) const {

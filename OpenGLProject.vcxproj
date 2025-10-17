@@ -136,6 +136,7 @@
     <None Include="Res\standard.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\EnemySkull.cpp" />
     <ClCompile Include="Src\Engine\Collision.cpp" />
     <ClCompile Include="Src\Engine\Engine.cpp" />
     <ClCompile Include="Src\Engine\GameObject.cpp" />
@@ -150,6 +151,7 @@
     <ClCompile Include="Src\TitleScene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\EnemySkull.h" />
     <ClInclude Include="Src\Engine\AABBCollider.h" />
     <ClInclude Include="Src\Engine\Billboard.h" />
     <ClInclude Include="Src\Engine\Collision.h" />

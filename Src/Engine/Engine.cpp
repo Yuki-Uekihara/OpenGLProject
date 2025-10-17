@@ -13,6 +13,7 @@
 #include "../../Res/MeshData/crystal_mesh.h"
 #include "../../Res/MeshData/wall_mesh.h"
 #include "../../Res/MeshData/plane_xy_mesh.h"
+#include "../../Res/MeshData/skull_mesh.h"
 
 
  /*
@@ -182,6 +183,7 @@ int Engine::Initialize() {
 		{ sizeof(crystal_vertices), sizeof(crystal_indices), crystal_vertices, crystal_indices },
 		{ sizeof(wall_vertices), sizeof(wall_indices), wall_vertices, wall_indices },
 		{ sizeof(plane_xy_vertices), sizeof(plane_xy_indices), plane_xy_vertices, plane_xy_indices },
+		{ sizeof(skull_vertices), sizeof(skull_indices), skull_vertices, skull_indices },
 
 	};
 

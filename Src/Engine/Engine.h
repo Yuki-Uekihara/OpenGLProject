@@ -22,7 +22,8 @@ enum MeshId {
 	MeshId_box,
 	MeshId_crystal,
 	MeshId_wall,
-	MeshId_plane_xy
+	MeshId_plane_xy,
+	MeshId_skull,
 };
 
 
