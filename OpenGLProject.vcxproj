@@ -154,6 +154,7 @@
     <ClInclude Include="Src\EnemySkull.h" />
     <ClInclude Include="Src\Engine\AABBCollider.h" />
     <ClInclude Include="Src\Engine\Billboard.h" />
+    <ClInclude Include="Src\Engine\BufferObject.h" />
     <ClInclude Include="Src\Engine\Collision.h" />
     <ClInclude Include="Src\Engine\Component.h" />
     <ClInclude Include="Src\Engine\Engine.h" />
@@ -164,6 +165,7 @@
     <ClInclude Include="Src\Engine\UIButton.h" />
     <ClInclude Include="Src\Engine\UILayout.h" />
     <ClInclude Include="Src\Engine\VecMath.h" />
+    <ClInclude Include="Src\Engine\VertexArrayObject.h" />
     <ClInclude Include="Src\glad\include\glad\glad.h" />
     <ClInclude Include="Src\glad\include\KHR\khrplatform.h" />
     <ClInclude Include="Src\GoalEvent.h" />
