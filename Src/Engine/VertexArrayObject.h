@@ -33,7 +33,7 @@ public:
 	 *	VAO‚ğ¶¬‚·‚é
 	 */
 	static std::shared_ptr<VertexArrayObject> Create() {
-		std::make_shared<VertexArrayObject>();
+		return std::make_shared<VertexArrayObject>();
 	}
 
 public:

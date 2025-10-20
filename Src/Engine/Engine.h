@@ -41,14 +41,8 @@ private:
 	GLuint vs = 0;
 	GLuint fs = 0;
 	GLuint prog = 0;
-	GLuint vbo = 0;		//	vertex buffer object
-	GLuint ibo = 0;		//	index buffer object
-	GLuint vao = 0;		//	vertex array object
 
-	GLintptr vboSize;	//	頂点バッファの現在のサイズ
-	GLintptr iboSize;	//	インデックスバッファの現在のサイズ
-	std::vector<DrawParam> drawParamList;	//	描画パラメータ配列
-
+	MeshBufferPtr meshBuffer;		//	図形データ管理オブジェクト
 	GameObjectList gameObjects;		//	ゲームオブジェクトの一元管理
 	float previousTime = 0;			//	前回の更新時
 	float deltaTime = 0;			//	前回の更新からの経過時間

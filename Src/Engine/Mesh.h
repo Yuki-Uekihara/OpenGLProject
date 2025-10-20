@@ -9,6 +9,8 @@
 #include "BufferObject.h"
 #include "VertexArrayObject.h"
 #include "VecMath.h"
+#include <vector>
+#include <memory>
 
 /*
  *	描画パラメータ
@@ -53,7 +55,7 @@ public:
 	 *	@param	bufferSize
 	 */
 	static std::shared_ptr<MeshBuffer> Create(size_t bufferSize) {
-		std::make_shared<MeshBuffer>(bufferSize);
+		return std::make_shared<MeshBuffer>(bufferSize);
 	}
 
 public:
@@ -74,6 +76,9 @@ public:
 public:
 	//	描画パラメータ数の取得
 	inline size_t GetDrawParamSize() const { return drawParamList.size(); }
+
+	//	描画パラメータの取得
+	inline const DrawParam& GetDrawParam(size_t index) const { return drawParamList[index]; }
 
 	//	VAOの取得
 	inline VertexArrayObjectPtr GetVAO() const { return vao; }

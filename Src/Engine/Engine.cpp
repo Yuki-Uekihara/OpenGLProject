@@ -150,14 +150,6 @@ int Engine::Initialize() {
 		{ { -1.0f,  1.0f, -1.0f }, { 0.0f, 1.0f } },
 	};
 
-	//	頂点バッファの管理番号
-	vbo = 0;		//	vertex buffer object
-	//	バッファの作成
-	glCreateBuffers(1, &vbo);
-	//	GPUメモリを確保しデータをコピーする
-	glNamedBufferStorage(vbo, sizeof(Vertex) * 10000, nullptr, 0);
-
-
 	//	インデックスデータ
 	const GLushort indexData[] = {
 		  0,   1,   2,    2,   3,   0,		//	+Z
@@ -188,62 +180,15 @@ int Engine::Initialize() {
 	};
 
 
-	//	インデックスバッファの管理番号
-	ibo = 0;		//	index buffer object
-	//	バッファの作成
-	glCreateBuffers(1, &ibo);
-	//	GPUメモリを確保しデータをコピーする
-	glNamedBufferStorage(ibo, sizeof(uint16_t) * 40000, nullptr, 0);
-
 	//	図形データから描画パラメータを作成し、データをGPUメモリにコピーする
-	drawParamList.reserve(std::size(meshes));
+	meshBuffer = MeshBuffer::Create(32'000'000);
 	for (const auto& mesh : meshes) {
-		GLuint tmp[2];	//	バッファ用一時変数
-		glCreateBuffers(2, tmp);
-		//	GPUのメモリを確保
-		glNamedBufferStorage(tmp[0], mesh.vertexSize, mesh.vertexData, 0);
-		glNamedBufferStorage(tmp[1], mesh.indexSize, mesh.indexData, 0);
-		//	データをコピー
-		glCopyNamedBufferSubData(tmp[0], vbo, 0, vboSize, mesh.vertexSize);
-		glCopyNamedBufferSubData(tmp[1], ibo, 0, iboSize, mesh.indexSize);
-		glDeleteBuffers(2, tmp);	//	一時バッファを削除
-
-		//	描画パラメータを作成
-		DrawParam param;
-		param.mode = GL_TRIANGLES;
-		param.count = static_cast<GLsizei>(mesh.indexSize / sizeof(uint16_t));
-		param.indices = reinterpret_cast<void*>(iboSize);
-		param.baseVertex = static_cast<GLint>(vboSize / sizeof(Vertex));
-		drawParamList.push_back(param);		//	描画パラメータを追加
-
-		//	バッファのサイズを更新
-		vboSize += mesh.vertexSize;
-		iboSize += mesh.indexSize;
+		meshBuffer->AddVertexData(
+			static_cast<const Vertex*>(mesh.vertexData), mesh.vertexSize,
+			static_cast<const uint16_t*>(mesh.indexData), mesh.indexSize
+		);
 	}
-
-
-
-	//	頂点属性(Vertex Attribute)配列の管理番号
-	vao = 0;		//	vertex array object
-	//	VAO を生成
-	glCreateVertexArrays(1, &vao);
-	//	OpenGLコンテキスト にバインド
-	glBindVertexArray(vao);
-
-	//	IBO を OpenGLコンテキスト と VAO にバインド
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	//	VBO を OpenGLコンテキスト にバインド
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	//	0番目の頂点属性(Vertex Attribute)を有効化
-	glEnableVertexAttribArray(0);
-	//	0番目の頂点属性を設定
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
-	//	1番目の頂点属性(Vertex Attribute)を有効化
-	glEnableVertexAttribArray(1);
-	//	1番目の頂点属性を設定
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-		reinterpret_cast<const void*>(offsetof(Vertex, texCoord)));
-
+	
 	//	一元管理配列の容量を予約
 	gameObjects.reserve(1000);
 
@@ -355,11 +300,14 @@ void Engine::Render() {
  *	ゲームオブジェクト配列を描画する 
  */
 void Engine::DrawGameObject(GameObjectList::iterator begin, GameObjectList::iterator end) {
+	//	メッシュバッファからVAOをバインド
+	glBindVertexArray(*meshBuffer->GetVAO());
+	
 	for (GameObjectList::iterator i = begin; i != end; ++i) {
 		const auto& obj = *i;
 
 		//	図形番号が対象外の場合は描画しない
-		if (obj->meshId < 0 || obj->meshId >= drawParamList.size())
+		if (obj->meshId < 0 || obj->meshId >= meshBuffer->GetDrawParamSize())
 			continue;
 
 		glProgramUniform4fv(prog, 100, 1, obj->color);
@@ -374,10 +322,11 @@ void Engine::DrawGameObject(GameObjectList::iterator begin, GameObjectList::iter
 		}
 
 		//	図形を描画
-		const DrawParam& param = drawParamList[obj->meshId];
+		const DrawParam& param = meshBuffer->GetDrawParam(obj->meshId);
 		glDrawElementsInstancedBaseVertex(
 			param.mode, param.count, GL_UNSIGNED_SHORT, param.indices, 1, param.baseVertex);
 	}
+	glBindVertexArray(0);
 }
 
 /*

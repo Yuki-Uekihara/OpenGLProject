@@ -140,6 +140,7 @@
     <ClCompile Include="Src\Engine\Collision.cpp" />
     <ClCompile Include="Src\Engine\Engine.cpp" />
     <ClCompile Include="Src\Engine\GameObject.cpp" />
+    <ClCompile Include="Src\Engine\Mesh.cpp" />
     <ClCompile Include="Src\Engine\Texture.cpp" />
     <ClCompile Include="Src\Engine\UIButton.cpp" />
     <ClCompile Include="Src\Engine\UILayout.cpp" />
