@@ -11,6 +11,8 @@
 #include "VecMath.h"
 #include <vector>
 #include <memory>
+#include <string>
+#include <unordered_map>
 
 /*
  *	描画パラメータ
@@ -21,6 +23,19 @@ struct DrawParam {
 	const void* indices;			//	描画開始インデックスのバイトオフセット
 	GLint baseVertex = 0;			//	インデックス0番となる位置
 };
+
+/*
+ *	3Dモデル 
+ */
+struct StaticMesh {
+	std::string name;		//	メッシュ名
+	std::vector<DrawParam> drawParamList;	//	描画パラメータ
+};
+//	別名定義
+using StaticMeshPtr = std::shared_ptr<StaticMesh>;
+
+void Draw(const StaticMesh& mesh);
+
 
 /*
  *	頂点データ
@@ -36,6 +51,7 @@ struct Vertex {
  */
 class MeshBuffer {
 private:
+	std::unordered_map<std::string, StaticMeshPtr> meshes;
 	std::vector<DrawParam> drawParamList;	//	描画パラメータ配列
 	VertexArrayObjectPtr vao;				//	頂点アトリビュート配列
 	BufferObjectPtr buffer;					//	頂点データ、インデックスデータ
@@ -60,6 +76,13 @@ public:
 
 public:
 	/*
+	 *	OBJファイルを読み込む
+	 *	@param	filename
+	 *	@return	生成したメッシュ
+	 */
+	StaticMeshPtr LoadOBJ(const char* filename);
+
+	/*
 	 *	頂点データの追加
 	 *	@param	vertices	 GPUメモリにコピーする頂点データ配列
 	 *	@param	vertexBytes	 verticesのバイト数
@@ -74,6 +97,13 @@ public:
 	void Clear();
 
 public:
+	/*
+	 *	スタティックメッシュの取得
+	 *	@param	name
+	 *	@return	StaticMesh
+	 */
+	StaticMeshPtr GetStaticMesh(const char* name) const;
+
 	//	描画パラメータ数の取得
 	inline size_t GetDrawParamSize() const { return drawParamList.size(); }
 
