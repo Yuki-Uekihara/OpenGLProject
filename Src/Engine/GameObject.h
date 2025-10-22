@@ -8,6 +8,7 @@
 #include "VecMath.h"
 #include "Component.h"
 #include "Texture.h"
+#include "Mesh.h"
 #include "AABBCollider.h"
 
 #include <memory>
@@ -44,6 +45,7 @@ public:
 	Vector3 rotation = { 0.0f, 0.0f, 0.0f };		//	回転角度
 	Vector3 scale = { 1.0f, 1.0f, 1.0f };			//	拡大率
 	float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };	//	色
+	StaticMeshPtr staticMesh;						//	表示するスタティックメッシュ
 	TexturePtr texColor;							//	カラーテクスチャ
 	int meshId = -1;								//	図形の番号
 	int renderQueue = RenderQueue_geometry;			//	描画順

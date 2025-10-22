@@ -32,6 +32,8 @@ MeshBuffer::MeshBuffer(size_t bufferSize) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	//	スタティックメッシュの容量を予約
+	meshes.reserve(100);
 	//	描画パラメータの容量を予約
 	drawParamList.reserve(100);
 }
@@ -176,6 +178,7 @@ void MeshBuffer::AddVertexData(const Vertex* vertices, size_t vertexBytes, const
  */
 void MeshBuffer::Clear() {
 	usedBytes = 0;
+	meshes.clear();
 	drawParamList.clear();
 }
 

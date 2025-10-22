@@ -197,6 +197,16 @@ public:
 		fovScale = 1 / std::tanf(radFovY / 2);
 	}
 	inline float GetFovScale() const { return fovScale; }
+
+	/*
+	 *	スタティックメッシュの取得
+	 *	@param	name
+	 *	@return	StaticMeshPtr
+	 */
+	inline StaticMeshPtr GetStaticMesh(const char* name) {
+		return meshBuffer->GetStaticMesh(name);
+	}
+
 };
 
 #endif // !_ENGINE_H_

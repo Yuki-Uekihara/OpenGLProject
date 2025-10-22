@@ -122,6 +122,24 @@ bool MainGameScene::Initialize(Engine& engine) {
 	player->position = camera.position = startPoint;
 	player->rotation = camera.rotation = { 0.0f, 180.0f * Deg2Rad, 0.0f };
 
+	//	OBJファイル表示テスト
+	auto highpoly = engine.Create<GameObject>("skull_highpoly");
+	highpoly->position = startPoint + Vector3{ 1.0f, 0.0f, 0.0f };
+	highpoly->scale = { 2.0f, 2.0f, 2.0f };
+	highpoly->rotation.y = -90.0f * Deg2Rad;
+	highpoly->staticMesh = engine.GetStaticMesh(
+		"Res/MeshData/skull/skull_highpoly.obj"
+	);
+	highpoly->texColor = std::make_shared<Texture>("Res/MeshData/skull.tga");
+
+	//	比較用従来の表示テスト
+	auto lowpoly = engine.Create<GameObject>("skull_lowpoly");
+	lowpoly->position = startPoint;
+	lowpoly->scale = { 2.0f, 2.0f, 2.0f };
+	lowpoly->rotation.y = -90.0f * Deg2Rad;
+	lowpoly->meshId = MeshId_skull;
+	lowpoly->texColor = std::make_shared<Texture>("Res/MeshData/skull.tga");
+
 	return true;	//	初期化成功
 }
 

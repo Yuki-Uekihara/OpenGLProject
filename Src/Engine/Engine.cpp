@@ -188,7 +188,10 @@ int Engine::Initialize() {
 			static_cast<const uint16_t*>(mesh.indexData), mesh.indexSize
 		);
 	}
-	
+
+	//	OBJファイルの読み込み
+	meshBuffer->LoadOBJ("Res/MeshData/skull/skull_highpoly.obj");
+
 	//	一元管理配列の容量を予約
 	gameObjects.reserve(1000);
 
@@ -280,7 +283,7 @@ void Engine::Render() {
 		RenderQueue_overlay,						//	検索する値
 		[](const GameObjectPtr& obj, int v) {		//	検索する条件
 			return obj->renderQueue < v;
-		}										
+		}
 	);
 
 	//	overlay以前の描画
@@ -297,17 +300,17 @@ void Engine::Render() {
 }
 
 /*
- *	ゲームオブジェクト配列を描画する 
+ *	ゲームオブジェクト配列を描画する
  */
 void Engine::DrawGameObject(GameObjectList::iterator begin, GameObjectList::iterator end) {
 	//	メッシュバッファからVAOをバインド
 	glBindVertexArray(*meshBuffer->GetVAO());
-	
+
 	for (GameObjectList::iterator i = begin; i != end; ++i) {
 		const auto& obj = *i;
 
 		//	図形番号が対象外の場合は描画しない
-		if (obj->meshId < 0 || obj->meshId >= meshBuffer->GetDrawParamSize())
+		if (!obj->staticMesh && (obj->meshId < 0 || obj->meshId >= meshBuffer->GetDrawParamSize()))
 			continue;
 
 		glProgramUniform4fv(prog, 100, 1, obj->color);
@@ -322,9 +325,14 @@ void Engine::DrawGameObject(GameObjectList::iterator begin, GameObjectList::iter
 		}
 
 		//	図形を描画
-		const DrawParam& param = meshBuffer->GetDrawParam(obj->meshId);
-		glDrawElementsInstancedBaseVertex(
-			param.mode, param.count, GL_UNSIGNED_SHORT, param.indices, 1, param.baseVertex);
+		if (obj->staticMesh) {
+			Draw(*obj->staticMesh);
+		}
+		else {
+			const DrawParam& param = meshBuffer->GetDrawParam(obj->meshId);
+			glDrawElementsInstancedBaseVertex(
+				param.mode, param.count, GL_UNSIGNED_SHORT, param.indices, 1, param.baseVertex);
+		}
 	}
 	glBindVertexArray(0);
 }
