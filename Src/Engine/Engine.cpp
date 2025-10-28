@@ -314,6 +314,20 @@ void Engine::Render() {
  *	ゲームオブジェクト配列を描画する
  */
 void Engine::DrawGameObject(GameObjectList::iterator begin, GameObjectList::iterator end) {
+	//	点光源の情報を設定
+	glProgramUniform3f(prog, 101,
+		pointLight.color.x * pointLight.intensity,
+		pointLight.color.y * pointLight.intensity,
+		pointLight.color.z * pointLight.intensity
+	);
+
+	glProgramUniform3f(prog, 102,
+		pointLight.position.x,
+		pointLight.position.y,
+		pointLight.position.z
+	);
+
+
 	//	メッシュバッファからVAOをバインド
 	glBindVertexArray(*meshBuffer->GetVAO());
 

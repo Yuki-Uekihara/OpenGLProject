@@ -89,8 +89,8 @@ StaticMeshPtr MeshBuffer::LoadOBJ(const char* filename) {
 
 		//	–@ü‚Ì“Ç‚İæ‚è‚ğ‚İ‚é
 		Vector3 vn;
-		if (sscanf_s(p, " vm %f %f %f", &vn.x, &vn.y, &vn.z) == 3) {
-			positions.push_back(vn);
+		if (sscanf_s(p, " vn %f %f %f", &vn.x, &vn.y, &vn.z) == 3) {
+			normals.push_back(vn);
 			continue;
 		}
 

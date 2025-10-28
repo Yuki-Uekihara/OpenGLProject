@@ -15,6 +15,14 @@
 #include "Mesh.h"
 
 
+//	点光源
+struct PointLight {
+	Vector3 color;		//	色
+	float intensity;	//	明るさ
+	Vector3 position;	//	位置
+};
+
+
 //	メッシュ番号
 //	Initialize関数にある meshes 配列と順番を合わせる
 //	配列に変更があった場合はこちらも変更する
@@ -50,6 +58,11 @@ private:
 	ScenePtr scene;					//	実行中のシーン
 	ScenePtr nextScene;				//	次のシーン
 
+	PointLight pointLight = {		//	点光源
+		{ 1.0f, 0.9f, 0.8f },
+		3,
+		{ 3.0f, 1.0f, 3.0f }
+	};
 
 	GameObject camera;
 

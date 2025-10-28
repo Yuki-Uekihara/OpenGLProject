@@ -31,16 +31,20 @@ void main() {
 	vec3 direction = pointLight.position - inPosition;
 
 	//	方向を正規化し、長さを1にする
+	direction = normalize(direction);
 
 	//	線形補間によって長さが1ではなくなるので、再び正規化し長さを1にする
+	vec3 normal = normalize(inNormal);
 
 	//	ランベルトの余弦則を使って明るさを計算
+	float theta = max(dot(direction, normal), 0);
 
 	//	ランバート反射による反射光のエネルギー量を入射光と等しくする
+	float illuminance = theta / 3.14159265f;
 
 	//	拡散光の明るさを計算
+	vec3 diffuse = pointLight.color * illuminance;
 
 	//	拡散光の影響を反映
-
-
+	outColor.rgb *= diffuse;
 }
