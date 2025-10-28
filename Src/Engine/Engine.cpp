@@ -183,10 +183,21 @@ int Engine::Initialize() {
 	//	図形データから描画パラメータを作成し、データをGPUメモリにコピーする
 	meshBuffer = MeshBuffer::Create(32'000'000);
 	for (const auto& mesh : meshes) {
-		meshBuffer->AddVertexData(
-			static_cast<const Vertex*>(mesh.vertexData), mesh.vertexSize,
-			static_cast<const uint16_t*>(mesh.indexData), mesh.indexSize
-		);
+		//	法線を設定するために図形のコピーを作る
+		auto pVertex = static_cast<const Vertex*>(mesh.vertexData);
+		auto pIndex = static_cast<const uint16_t*>(mesh.indexData);
+		std::vector<Vertex> copyVertex(pVertex, pVertex + mesh.vertexSize / sizeof(Vertex));
+
+		//	コピーした図形に法線を設定
+		for (auto& v : copyVertex) {
+			v.normal = Vector3::zero;
+		}
+		FillMissingNormals(copyVertex.data(), copyVertex.size(),
+			pIndex, mesh.indexSize / sizeof(uint16_t));
+
+		//	法線を設定した図形データをGPUメモリにコピーする
+		meshBuffer->AddVertexData(copyVertex.data(), mesh.vertexSize,
+			pIndex, mesh.indexSize);
 	}
 
 	//	OBJファイルの読み込み

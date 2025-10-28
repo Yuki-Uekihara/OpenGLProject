@@ -6,10 +6,12 @@
 //	入力
 layout (location = 0) in vec3 inPosition;	//	頂点座標
 layout (location = 1) in vec2 inTexcoord;	//	テクスチャ座標
+layout (location = 2) in vec3 inNormal;		//	法線
 
 //	出力
+layout (location = 0) out vec3 outPosition;	//	ワールド座標
 layout (location = 1) out vec2 outTexcoord;	//	テクスチャ座標
-
+layout (location = 2) out vec3 outNormal;	//	法線
 
 //	プログラムからの入力
 //layout (location = 0) uniform float timer;	//	時間
@@ -35,6 +37,13 @@ void main() {
 
 	gl_Position.xyz += position;	//	スウィズリング(swizzling)
 	
+	outPosition = gl_Position.xyz;
+
+	//	ワールド法線を計算
+	outNormal.x = inNormal.x * cosY + inNormal.z * sinY;
+	outNormal.y = inNormal.y;
+	outNormal.z = inNormal.x * -sinY + inNormal.z * cosY;
+
 	//	ワールド座標系からビュー座標系に変換
 	pos = gl_Position.xyz - cameraPosition;
 	float cameraSinY = cameraSinCosY.x;

@@ -43,6 +43,7 @@ void Draw(const StaticMesh& mesh);
 struct Vertex {
 	Vector3 position;		//	頂点座標
 	Vector2 texCoord;		//	テクスチャ座標
+	Vector3 normal;			//	法線ベクトル
 };
 
 
@@ -115,5 +116,16 @@ public:
 };
 //	別名定義
 using MeshBufferPtr = std::shared_ptr<MeshBuffer>;
+
+/*
+ *	欠けている法線を補う
+ *	@param	vertices		頂点配列
+ *	@param	vertexCount		頂点配列の要素数
+ *	@param	indices			インデックス配列
+ *	@param	indexCount		インデックス配列の要素数
+ */
+void FillMissingNormals(
+	Vertex* vertices, size_t vertexCount,
+	const uint16_t* indices, size_t indexCount);
 
 #endif // !_MESH_H_
