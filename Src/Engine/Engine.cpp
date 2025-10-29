@@ -201,7 +201,7 @@ int Engine::Initialize() {
 	}
 
 	//	OBJファイルの読み込み
-	meshBuffer->LoadOBJ("Res/MeshData/skull/skull_highpoly.obj");
+	meshBuffer->LoadOBJ("Res/MeshData/skull/skull_highpoly_with_normal.obj");
 
 	//	一元管理配列の容量を予約
 	gameObjects.reserve(1000);
@@ -321,10 +321,11 @@ void Engine::DrawGameObject(GameObjectList::iterator begin, GameObjectList::iter
 		pointLight.color.z * pointLight.intensity
 	);
 
-	glProgramUniform3f(prog, 102,
+	glProgramUniform4f(prog, 102,
 		pointLight.position.x,
 		pointLight.position.y,
-		pointLight.position.z
+		pointLight.position.z,
+		pointLight.radius
 	);
 
 

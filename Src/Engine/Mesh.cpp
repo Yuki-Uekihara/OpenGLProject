@@ -98,7 +98,7 @@ StaticMeshPtr MeshBuffer::LoadOBJ(const char* filename) {
 		IndexSet f0, f1, f2;
 		int readByte;
 		//	頂点座標 + テクスチャ座標 + 法線
-		if (sscanf_s(p, " f %u/%u/%u %u/%u%u%n",
+		if (sscanf_s(p, " f %u/%u/%u %u/%u/%u%n",
 			&f0.v, &f0.vt, &f0.vn, &f1.v, &f1.vt, &f1.vn, &readByte) == 6) {
 			p += readByte;	//	読み取り位置を更新
 			while (1) {

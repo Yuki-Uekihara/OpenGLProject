@@ -18,17 +18,25 @@ layout (location = 100) uniform vec4 color;		//	色
 //	点光源 ポイントライト
 struct PointLight{
 	vec3 color;		//	色と明るさ
-	vec3 position;	//	位置
+	vec4 positionAndRadius;	//	位置と半径
 };
 layout (location = 101) uniform PointLight pointLight;
 
 void main() {
 	vec4 c = texture(texColor, inTexcoord);
 
+	//	テクスチャのガンマ補正
+	const float crtGamma = 2.2;		//	モニターのガンマ値
+	c.rgb = pow(c.rgb, vec3(crtGamma));
+
 	outColor = c * color;
 
 	//	ポイントライトの方向
-	vec3 direction = pointLight.position - inPosition;
+	vec3 direction = pointLight.positionAndRadius.xyz - inPosition;
+
+	//	光源までの距離
+	float sqrDistance = dot(direction, direction);
+	float distance = sqrt(sqrDistance);
 
 	//	方向を正規化し、長さを1にする
 	direction = normalize(direction);
@@ -42,9 +50,20 @@ void main() {
 	//	ランバート反射による反射光のエネルギー量を入射光と等しくする
 	float illuminance = theta / 3.14159265f;
 
+	//	ライトの最大距離を制限
+	const float radius = pointLight.positionAndRadius.w;
+	const float smoothFactor = clamp(1 - pow(distance / radius, 4), 0, 1);
+	illuminance *= smoothFactor * smoothFactor;
+
+	//	逆2乗の法則によって明るさを減衰させる
+	illuminance /= sqrDistance + 1;
+
 	//	拡散光の明るさを計算
 	vec3 diffuse = pointLight.color * illuminance;
 
 	//	拡散光の影響を反映
 	outColor.rgb *= diffuse;
+
+	//	ガンマ補正を戻す
+	outColor.rgb = pow(outColor.rgb, vec3(1 / crtGamma));
 }

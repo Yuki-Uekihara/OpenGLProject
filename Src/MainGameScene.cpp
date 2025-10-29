@@ -128,7 +128,7 @@ bool MainGameScene::Initialize(Engine& engine) {
 	highpoly->scale = { 2.0f, 2.0f, 2.0f };
 	highpoly->rotation.y = -90.0f * Deg2Rad;
 	highpoly->staticMesh = engine.GetStaticMesh(
-		"Res/MeshData/skull/skull_highpoly.obj"
+		"Res/MeshData/skull/skull_highpoly_with_normal.obj"
 	);
 	highpoly->texColor = std::make_shared<Texture>("Res/MeshData/skull.tga");
 

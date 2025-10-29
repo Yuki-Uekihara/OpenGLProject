@@ -20,6 +20,7 @@ struct PointLight {
 	Vector3 color;		//	色
 	float intensity;	//	明るさ
 	Vector3 position;	//	位置
+	float radius;		//	ライトが届く最大半径
 };
 
 
@@ -60,8 +61,9 @@ private:
 
 	PointLight pointLight = {		//	点光源
 		{ 1.0f, 0.9f, 0.8f },
-		3,
-		{ 3.0f, 1.0f, 3.0f }
+		30,
+		{ 3.0f, 1.0f, 3.0f },
+		5
 	};
 
 	GameObject camera;
@@ -220,6 +222,11 @@ public:
 		return meshBuffer->GetStaticMesh(name);
 	}
 
+	//	ポイントライトの取得
+	inline const PointLight& GetPointLight() const { return pointLight; }
+
+	//	ポイントライトの設定
+	inline void SetPointLight(const PointLight& p) { pointLight = p; }
 };
 
 #endif // !_ENGINE_H_

@@ -66,6 +66,11 @@ public:
 		if (engine->GetKey(GLFW_KEY_RIGHT)) {
 			camera.rotation.y += 0.05f;
 		}
+
+		//	ƒ‰ƒCƒg‚ÌˆÊ’u‚ğİ’è
+		auto pointLight = engine->GetPointLight();
+		pointLight.position = camera.position;
+		engine->SetPointLight(pointLight);
 	}
 
 	//	Õ“Ë‚Ìˆ—
