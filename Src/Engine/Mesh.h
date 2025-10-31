@@ -8,15 +8,16 @@
 #include "glad/glad.h"
 #include "BufferObject.h"
 #include "VertexArrayObject.h"
+#include "Texture.h"
 #include "VecMath.h"
 #include <vector>
 #include <memory>
 #include <string>
 #include <unordered_map>
 
-/*
- *	描画パラメータ
- */
+ /*
+  *	描画パラメータ
+  */
 struct DrawParam {
 	GLenum mode = GL_TRIANGLES;		//	プリミティブの種類
 	GLsizei count = 0;				//	描画するインデックス数
@@ -25,7 +26,7 @@ struct DrawParam {
 };
 
 /*
- *	3Dモデル 
+ *	3Dモデル
  */
 struct StaticMesh {
 	std::string name;		//	メッシュ名
@@ -39,12 +40,23 @@ void Draw(const StaticMesh& mesh);
 
 /*
  *	頂点データ
- */	
+ */
 struct Vertex {
 	Vector3 position;		//	頂点座標
 	Vector2 texCoord;		//	テクスチャ座標
 	Vector3 normal;			//	法線ベクトル
 };
+
+/*
+ *	マテリアル
+ */
+struct Material {
+	std::string name = "<Default>";		//	マテリアル名
+	Vector4 baseColor = Vector4::one;	//	基本色 + α値
+	TexturePtr texBaseColor;			//	基本色テクスチャ
+};
+//	別名定義
+using MaterialPtr = std::shared_ptr<Material>;
 
 
 /*

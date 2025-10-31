@@ -56,6 +56,16 @@ StaticMeshPtr MeshBuffer::LoadOBJ(const char* filename) {
 	if (!file)
 		return nullptr;		//	読み込み失敗
 
+
+	//	MTLファイルを開くためのフォルダ名を取得する
+	std::string foldername(filename);
+	{
+		const size_t p = foldername.find_last_of("\\/");
+		if (p != std::string::npos) {
+			foldername.resize(p + 1);
+		}
+	}
+
 	//	OBJファイルを解析して、頂点データとインデックスデータを読み込む
 	std::vector<Vector3> positions;
 	std::vector<Vector2> texcoords;
@@ -67,6 +77,22 @@ StaticMeshPtr MeshBuffer::LoadOBJ(const char* filename) {
 	texcoords.reserve(20'000);
 	normals.reserve(20'000);
 	faceIndexSet.reserve(20'000 * 3);
+
+	//	マテリアル
+	std::vector<MaterialPtr> materials;
+	materials.reserve(100);
+
+	//	マテリアルの使用範囲
+	struct UseMaterial {
+		std::string name;		//	マテリアル名
+		size_t startOffset;		//	割り当てする範囲の先頭位置
+	};
+	std::vector<UseMaterial> usemtls;
+	usemtls.reserve(100);
+
+	//	仮データを挿入しておく（マテリアルの指定がないOBLファイル対策）
+	usemtls.push_back({ "", 0 });
+
 
 	while (!file.eof()) {
 		std::string line;
@@ -131,7 +157,25 @@ StaticMeshPtr MeshBuffer::LoadOBJ(const char* filename) {
 			}
 			continue;
 		}
+
+		//	MTLファイルの読み取りを試みる
+		char mtlFilename[1000] = { 0 };
+		if (sscanf_s(line.data(), " mtllib %999s", mtlFilename, 999) == 1) {
+			const auto tmp = LoadMTL(foldername, mtlFilename);
+			materials.insert(materials.end(), tmp.begin(), tmp.end());
+			continue;
+		}
+
+		//	使用するマテリアル名の読み取りを試みる
+		char mtlName[1000];
+		if (sscanf_s(line.data(), " usemtl %999s", mtlName, 999) == 1) {
+			usemtls.push_back({ mtlName, faceIndexSet.size() });
+			continue;
+		}
 	}
+
+	//	使用するマテリアルの末尾に番兵を追加
+	usemtls.push_back({ "", faceIndexSet.size() });
 
 	//	読み込んだデータをOpenGLで使えるデータに変換する
 	std::vector<Vertex> vertices;
@@ -173,6 +217,70 @@ StaticMeshPtr MeshBuffer::LoadOBJ(const char* filename) {
 	meshes.emplace(filename, pMesh);
 	//	生成したメッシュを返す
 	return pMesh;
+}
+
+/*
+ *	MTLファイルを読み込む
+ *	@param	foldername
+ *	@param	filename
+ *	@return		MTLファイルに含まれるマテリアル配列
+ */
+std::vector<MaterialPtr> LoadMTL(const std::string& foldername, const char* filename) {
+	//	MTLファイルを開く
+	const std::string fullpath = foldername + filename;
+	std::ifstream file(fullpath);
+	if (!file)
+		return {};	//	読み込み失敗
+
+	//	MTLファイルを解析する
+	std::vector<MaterialPtr> materials;
+	MaterialPtr pMat;
+
+	while (!file.eof()) {
+		std::string line;
+		std::getline(file, line);
+		const char* p = line.c_str();
+
+		//	マテリアル定義の読み取りを試みる
+		char name[1000] = { 0 };
+		if (sscanf_s(line.data(), " newmtl %999s", name, 999) == 1) {
+			pMat = std::make_shared<Material>();
+			pMat->name = name;
+			materials.push_back(pMat);
+			continue;
+		}
+
+		//	マテリアルが定義されていない場合は処理しない
+		if (!pMat)
+			continue;
+
+		//	基本色の読み取りを試みる
+		if (sscanf_s(line.data(), " Kd %f %f %f",
+			&pMat->baseColor.x, &pMat->baseColor.y, &pMat->baseColor.z) == 3) {
+			continue;
+		}
+
+		//	不透明度の読み取りを試みる
+		if (sscanf_s(line.data(), " d %f", &pMat->baseColor.w) == 1){
+			continue;
+		}
+
+		//	基本色テクスチャ名の読み取りを試みる
+		char texName[1000] = { 0 };
+		if (sscanf_s(line.data(), " map_Kd %999s", &texName, 999) == 1) {
+			const std::string filename = foldername + texName;
+			if (std::filesystem::exists(filename)) {
+				pMat->texBaseColor = std::make_shared<Texture>(filename.c_str());
+			}
+			else {
+				//	ファイルが開けない
+			}
+			continue;
+		}
+	}
+
+	//	読み込んだマテリアルを返す
+	return materials;
 }
 
 /*
