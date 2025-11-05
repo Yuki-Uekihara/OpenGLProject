@@ -23,19 +23,8 @@ struct DrawParam {
 	GLsizei count = 0;				//	描画するインデックス数
 	const void* indices;			//	描画開始インデックスのバイトオフセット
 	GLint baseVertex = 0;			//	インデックス0番となる位置
+	int materialNo = -1;			//	マテリアルインデックス
 };
-
-/*
- *	3Dモデル
- */
-struct StaticMesh {
-	std::string name;		//	メッシュ名
-	std::vector<DrawParam> drawParamList;	//	描画パラメータ
-};
-//	別名定義
-using StaticMeshPtr = std::shared_ptr<StaticMesh>;
-
-void Draw(const StaticMesh& mesh);
 
 
 /*
@@ -57,6 +46,20 @@ struct Material {
 };
 //	別名定義
 using MaterialPtr = std::shared_ptr<Material>;
+
+/*
+ *	3Dモデル
+ */
+struct StaticMesh {
+	std::string name;		//	メッシュ名
+	std::vector<DrawParam> drawParamList;	//	描画パラメータ
+	std::vector<MaterialPtr> materials;		//	マテリアル配列
+};
+//	別名定義
+using StaticMeshPtr = std::shared_ptr<StaticMesh>;
+
+void Draw(const StaticMesh& mesh, GLuint prog = 0);
+
 
 
 /*

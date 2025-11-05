@@ -202,6 +202,7 @@ int Engine::Initialize() {
 
 	//	OBJƒtƒ@ƒCƒ‹‚Ì“Ç‚Ýž‚Ý
 	meshBuffer->LoadOBJ("Res/MeshData/skull/skull_highpoly_with_normal.obj");
+	meshBuffer->LoadOBJ("Res/MeshData/ghost/ghost.obj");
 
 	//	ˆêŒ³ŠÇ—”z—ñ‚Ì—e—Ê‚ð—\–ñ
 	gameObjects.reserve(1000);
@@ -352,7 +353,7 @@ void Engine::DrawGameObject(GameObjectList::iterator begin, GameObjectList::iter
 
 		//	}Œ`‚ð•`‰æ
 		if (obj->staticMesh) {
-			Draw(*obj->staticMesh);
+			Draw(*obj->staticMesh, prog);
 		}
 		else {
 			const DrawParam& param = meshBuffer->GetDrawParam(obj->meshId);

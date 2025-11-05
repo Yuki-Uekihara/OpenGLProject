@@ -131,11 +131,6 @@ Vector3 Vector3::Normalized() const {
 	return (*this / l);
 }
 
-
-Vector4 Vector4::operator - () {
-	return (*this * -1);
-}
-
 Vector4 Vector4::operator * (float v) const {
 	return Vector4(x * v, y * v, z * v, w * v);
 }

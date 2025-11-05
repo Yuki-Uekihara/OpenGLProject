@@ -40,8 +40,73 @@ MeshBuffer::MeshBuffer(size_t bufferSize) {
 }
 
 /*
+ *	MTLファイルを読み込む
+ *	@param	foldername
+ *	@param	filename
+ *	@return		MTLファイルに含まれるマテリアル配列
+ */
+std::vector<MaterialPtr> LoadMTL(const std::string& foldername, const char* filename) {
+	//	MTLファイルを開く
+	const std::string fullpath = foldername + filename;
+	std::ifstream file(fullpath);
+	if (!file)
+		return {};	//	読み込み失敗
 
-*	OBJファイルを読み込む
+	//	MTLファイルを解析する
+	std::vector<MaterialPtr> materials;
+	MaterialPtr pMat;
+
+	while (!file.eof()) {
+		std::string line;
+		std::getline(file, line);
+		const char* p = line.c_str();
+
+		//	マテリアル定義の読み取りを試みる
+		char name[1000] = { 0 };
+		if (sscanf_s(line.data(), " newmtl %999s", name, 999) == 1) {
+			pMat = std::make_shared<Material>();
+			pMat->name = name;
+			materials.push_back(pMat);
+			continue;
+		}
+
+		//	マテリアルが定義されていない場合は処理しない
+		if (!pMat)
+			continue;
+
+		//	基本色の読み取りを試みる
+		if (sscanf_s(line.data(), " Kd %f %f %f",
+			&pMat->baseColor.x, &pMat->baseColor.y, &pMat->baseColor.z) == 3) {
+			continue;
+		}
+
+		//	不透明度の読み取りを試みる
+		if (sscanf_s(line.data(), " d %f", &pMat->baseColor.w) == 1) {
+			continue;
+		}
+
+		//	基本色テクスチャ名の読み取りを試みる
+		char texName[1000] = { 0 };
+		if (sscanf_s(line.data(), " map_Kd %999s", &texName, 999) == 1) {
+			const std::string filename = foldername + texName;
+			if (std::filesystem::exists(filename)) {
+				pMat->texBaseColor = std::make_shared<Texture>(filename.c_str());
+			}
+			else {
+				//	ファイルが開けない
+			}
+			continue;
+		}
+	}
+
+	//	読み込んだマテリアルを返す
+	return materials;
+}
+
+
+
+/*
+ *	OBJファイルを読み込む
  *	@param	filename
  *	@return	生成したメッシュ
  */
@@ -212,75 +277,59 @@ StaticMeshPtr MeshBuffer::LoadOBJ(const char* filename) {
 
 	//	メッシュを生成
 	auto pMesh = std::make_shared<StaticMesh>();
-	pMesh->drawParamList.push_back(drawParamList.back());
+
+	//	データの位置を取得
+	const void* indexOffset = drawParamList.back().indices;
+	const GLint baseVertex = drawParamList.back().baseVertex;
+
+	//	マテリアルに対応した描画パラメータを生成
+	//	仮データ、番兵のデータ以外のマテリアルある場合は仮データを飛ばす
+	size_t i = 0;
+	if (usemtls.size() > 2) {
+		i = 1;
+	}
+
+	for (; i < usemtls.size() - 1; i++) {
+		const UseMaterial& current = usemtls[i];		//	現在のマテリアル
+		const UseMaterial& next = usemtls[i + 1];		//	次のマテリアル
+		//	インデックスデータがない場合は処理しない
+		if (next.startOffset == current.startOffset)
+			continue;
+
+		//	描画パラメータを作成
+		DrawParam param;
+		param.mode = GL_TRIANGLES;
+		param.count = static_cast<GLsizei>(next.startOffset - current.startOffset);
+		param.indices = indexOffset;
+		param.baseVertex = baseVertex;
+		param.materialNo = 0;		//	デフォルト値を設定
+		//	名前の一致するマテリアルを設定
+		for (int i = 0; i < materials.size(); i++) {
+			if (materials[i]->name == current.name) {
+				param.materialNo = i;
+				break;
+			}
+		}
+		pMesh->drawParamList.push_back(param);
+
+		//	インデックスオフセットを変更
+		indexOffset = reinterpret_cast<void*>(
+			reinterpret_cast<size_t>(indexOffset) + sizeof(uint16_t) * param.count
+			);
+	}
+
+	//	マテリアル配列が空の場合はデフォルトのマテリアルを追加
+	if (materials.empty()) {
+		pMesh->materials.push_back(std::make_shared<Material>());
+	}
+	else {
+		pMesh->materials.assign(materials.begin(), materials.end());
+	}
+
 	pMesh->name = filename;
 	meshes.emplace(filename, pMesh);
 	//	生成したメッシュを返す
 	return pMesh;
-}
-
-/*
- *	MTLファイルを読み込む
- *	@param	foldername
- *	@param	filename
- *	@return		MTLファイルに含まれるマテリアル配列
- */
-std::vector<MaterialPtr> LoadMTL(const std::string& foldername, const char* filename) {
-	//	MTLファイルを開く
-	const std::string fullpath = foldername + filename;
-	std::ifstream file(fullpath);
-	if (!file)
-		return {};	//	読み込み失敗
-
-	//	MTLファイルを解析する
-	std::vector<MaterialPtr> materials;
-	MaterialPtr pMat;
-
-	while (!file.eof()) {
-		std::string line;
-		std::getline(file, line);
-		const char* p = line.c_str();
-
-		//	マテリアル定義の読み取りを試みる
-		char name[1000] = { 0 };
-		if (sscanf_s(line.data(), " newmtl %999s", name, 999) == 1) {
-			pMat = std::make_shared<Material>();
-			pMat->name = name;
-			materials.push_back(pMat);
-			continue;
-		}
-
-		//	マテリアルが定義されていない場合は処理しない
-		if (!pMat)
-			continue;
-
-		//	基本色の読み取りを試みる
-		if (sscanf_s(line.data(), " Kd %f %f %f",
-			&pMat->baseColor.x, &pMat->baseColor.y, &pMat->baseColor.z) == 3) {
-			continue;
-		}
-
-		//	不透明度の読み取りを試みる
-		if (sscanf_s(line.data(), " d %f", &pMat->baseColor.w) == 1){
-			continue;
-		}
-
-		//	基本色テクスチャ名の読み取りを試みる
-		char texName[1000] = { 0 };
-		if (sscanf_s(line.data(), " map_Kd %999s", &texName, 999) == 1) {
-			const std::string filename = foldername + texName;
-			if (std::filesystem::exists(filename)) {
-				pMat->texBaseColor = std::make_shared<Texture>(filename.c_str());
-			}
-			else {
-				//	ファイルが開けない
-			}
-			continue;
-		}
-	}
-
-	//	読み込んだマテリアルを返す
-	return materials;
 }
 
 /*
@@ -348,8 +397,35 @@ StaticMeshPtr MeshBuffer::GetStaticMesh(const char* name) const {
 /*
  *	メッシュを描画する
  */
-void Draw(const StaticMesh& mesh) {
+void Draw(const StaticMesh& mesh, GLuint prog) {
+	//	カラーパラメータを取得
+	Vector4 objectColor;
+	if (prog) {
+		glGetUniformfv(prog, 100, &objectColor.x);
+	}
+
 	for (const auto& drawParam : mesh.drawParamList) {
+		//	マテリアルを設定
+		if (drawParam.materialNo >= 0 && drawParam.materialNo < mesh.materials.size()) {
+			const Material& mat = *mesh.materials[drawParam.materialNo];
+
+			if (prog) {
+				const Vector4 color = Vector4::Scale(objectColor, mat.baseColor);
+				//color = {
+				//	objectColor.x* mat.baseColor.x,
+				//	objectColor.y* mat.baseColor.y,
+				//	objectColor.z* mat.baseColor.z,
+				//	objectColor.w* mat.baseColor.w
+				//};
+				glProgramUniform4fv(prog, 100, 1, &color.x);
+			}
+
+			if (mat.texBaseColor) {
+				const GLuint tex = *mat.texBaseColor;
+				glBindTextures(0, 1, &tex);
+			}
+		}
+
 		glDrawElementsBaseVertex(
 			drawParam.mode,
 			drawParam.count,

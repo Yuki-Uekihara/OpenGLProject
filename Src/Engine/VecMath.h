@@ -85,7 +85,6 @@ struct Vector4 {
 	}
 
 	//	‰‰ŽZŽq
-	Vector4 operator - ();
 	Vector4 operator * (float v) const;
 	Vector4 operator / (float v) const;
 	Vector4 operator + (const Vector4& v) const;

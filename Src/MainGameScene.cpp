@@ -140,6 +140,11 @@ bool MainGameScene::Initialize(Engine& engine) {
 	lowpoly->meshId = MeshId_skull;
 	lowpoly->texColor = std::make_shared<Texture>("Res/MeshData/skull.tga");
 
+	auto ghost = engine.Create<GameObject>("ghost");
+	ghost->position = startPoint + Vector3(-1, 0, 2);
+	ghost->rotation.y = 90.0f * Deg2Rad;
+	ghost->staticMesh = engine.GetStaticMesh("Res/MeshData/ghost/ghost.obj");
+
 	return true;	//	‰Šú‰»¬Œ÷
 }
 
