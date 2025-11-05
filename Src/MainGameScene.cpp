@@ -61,9 +61,10 @@ bool MainGameScene::Initialize(Engine& engine) {
 		for (int x = 0; x < mapSizeX; x++) {
 			const float posX = static_cast<float>(x + 0.5f) * squareSize;
 			const float posZ = static_cast<float>(y + 0.5f) * squareSize;
+			const int tileId = GetMapData(x, y);
 
 			//	壁を生成
-			if (GetMapData(x, y) == '#') {
+			if (tileId == '#') {
 				auto wall = engine.Create<GameObject>("wall", { posX, 0, posZ });
 				wall->scale = { squareScale, squareScale, squareScale };
 				wall->texColor = texwall;
@@ -71,7 +72,7 @@ bool MainGameScene::Initialize(Engine& engine) {
 			}
 
 			//	クリスタルを生成
-			else if (GetMapData(x, y) == 'C') {
+			else if (tileId == 'C') {
 				auto crystal = engine.Create<GameObject>("crystal", { posX, 1, posZ });
 				crystal->scale = { 0.5f, 0.5f, 0.5f };
 				crystal->texColor = texCrystalBlue;
@@ -79,12 +80,12 @@ bool MainGameScene::Initialize(Engine& engine) {
 			}
 
 			//	プレーヤーの初期位置を設定
-			else if (GetMapData(x, y) == 'S') {
+			else if (tileId == 'S') {
 				startPoint = { posX, 1, posZ };
 			}
 
 			//	敵を生成
-			else if (GetMapData(x, y) == 'E') {
+			else if (tileId == 'E') {
 				auto enemy = engine.Create<GameObject>("enemy", { posX, 0, posZ });
 				auto component = enemy->AddComponent<EnemySkull>();
 				component->getMapData = [this](const Vector3& position) {
@@ -95,7 +96,7 @@ bool MainGameScene::Initialize(Engine& engine) {
 			}
 
 			//	ゴールオブジェクトを生成
-			else if (GetMapData(x, y) == 'G') {
+			else if (tileId == 'G') {
 				auto goal = engine.Create<GameObject>("goal", { posX, 1, posZ });
 				goal->AddComponent<GoalEvent>();
 				auto collider = goal->AddComponent<AABBCollider>();
@@ -104,6 +105,37 @@ bool MainGameScene::Initialize(Engine& engine) {
 					{  1.0f,  1.0f,  1.0f },
 				};
 				collider->isTrigger = true;
+			}
+
+			//	ドアを生成
+			else if (tileId == '|' || tileId == '-') {
+				//	アーチ
+				auto arch = engine.Create<GameObject>("arch", { posX, 0, posZ });
+				arch->scale = Vector3::one * squareScale;
+				arch->staticMesh = engine.GetStaticMesh("Res/MeshData/door/arch.obj");
+
+				//	ドア
+				auto door = engine.Create<GameObject>("door", { posX, 0, posZ });
+				door->scale = Vector3::one * squareScale;
+				door->staticMesh = engine.GetStaticMesh("Res/MeshData/door/door.obj");
+				//	ドアのコライダー
+				auto collider = door->AddComponent<AABBCollider>();
+				collider->aabb = {
+					{ -1.0f, 0.0f, -0.5f },
+					{  1.0f, 2.0f,  0.5f }
+				};
+				collider->isStatic = true;
+
+
+				//	向きに応じて回転
+				if (tileId == '|') {
+					arch->rotation.y += 90.0f * Deg2Rad;
+					door->rotation.y += 90.0f * Deg2Rad;
+					collider->aabb = {
+						{ -0.5f, 0.0f, -1.0f },
+						{  0.5f, 2.0f,  1.0f }
+					};
+				}
 			}
 		}
 	}
@@ -167,13 +199,13 @@ void MainGameScene::Finalize(Engine& engine) {
  */
 void MainGameScene::StatePlaying(Engine& engine, float deltaTime) {
 	constexpr Vector3 playerSize = { 1.0f, 1.5f, 1.0f };
-	GameObject& camera = engine.GetMainCamera();
-	camera.position = AdjustPosition(camera.position, playerSize);
-
-	//	カメラのパラメータをプレイヤーオブジェクトにコピー
 	auto player = playerComponent->GetOwner();
-	player->position = camera.position;
-	player->rotation = camera.rotation;
+	player->position = AdjustPosition(player->position, playerSize);
+
+	//	プレイヤーのパラメータをカメラにコピー
+	GameObject& camera = engine.GetMainCamera();
+	camera.position = player->position;
+	camera.rotation = player->rotation;
 
 	//	てすと
 	float fovY = engine.GetFovY();

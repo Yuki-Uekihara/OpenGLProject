@@ -10,7 +10,7 @@
  *  @param AABB b   判定対象2
  *  @param Vector3 penetration 貫通ベクトル
  */ 
-bool Intersect(const AABB& a, const AABB b, Vector3& penetration) {
+bool Intersect(const AABB& a, const AABB& b, Vector3& penetration) {
     //  aの左側面がbの右側面より右にある場合は交差していない
     const float dx0 = b.max.x - a.min.x;
     if (dx0 <= 0)

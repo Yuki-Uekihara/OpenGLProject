@@ -15,7 +15,16 @@ struct AABB {
 	Vector3 max;
 };
 
+/*
+ *	Œõü
+ */
+struct Ray {
+	Vector3 origin;			//	n“_
+	Vector3 direction;		//	•ûŒü
+};
+
 //	Õ“Ë‚µ‚Ä‚¢‚é‚©‚Ç‚¤‚©
-bool Intersect(const AABB& a, const AABB b, Vector3& penetration);
+bool Intersect(const AABB& a, const AABB& b, Vector3& penetration);
+bool Intersect(const AABB& a, const Ray& b, float& distance);
 
 #endif // !_COLLISION_H_

@@ -203,13 +203,17 @@ int Engine::Initialize() {
 	//	OBJファイルの読み込み
 	meshBuffer->LoadOBJ("Res/MeshData/skull/skull_highpoly_with_normal.obj");
 	meshBuffer->LoadOBJ("Res/MeshData/ghost/ghost.obj");
+	meshBuffer->LoadOBJ("Res/MeshData/door/door.obj");
+	meshBuffer->LoadOBJ("Res/MeshData/door/arch.obj");
+	meshBuffer->LoadOBJ("Res/MeshData/lever/lever_arm.obj");
+	meshBuffer->LoadOBJ("Res/MeshData/lever/lever_cover.obj");
 
 	//	一元管理配列の容量を予約
 	gameObjects.reserve(1000);
 
 	//	カメラの設定
 	camera.position = { 3, 1, 3 };
-	camera.rotation.y = 3.14159265f;
+	camera.rotation.y = 180.0f * Deg2Rad;
 
 	return 0;
 }
@@ -437,8 +441,8 @@ void Engine::HandleGameObjectCollision() {
  */
 void Engine::HandleWorldColliderCollision(WorldColliderList* a, WorldColliderList* b) {
 	//	コライダー毎の衝突判定
-	for (const auto& colA : *a) {
-		for (const auto& colB : *b) {
+	for (auto& colA : *a) {
+		for (auto& colB : *b) {
 			//	スタティックなコライダー同士では処理しない
 			if (colA.origin->isStatic && colB.origin->isStatic)
 				continue;
@@ -448,6 +452,26 @@ void Engine::HandleWorldColliderCollision(WorldColliderList* a, WorldColliderLis
 			if (Intersect(colA.world, colB.world, penetration)) {
 				GameObject* objA = colA.origin->GetOwner();
 				GameObject* objB = colB.origin->GetOwner();
+
+				//	コライダーが重ならないように座標を調整
+				if (!colA.origin->isTrigger && !colB.origin->isTrigger) {
+					//	Aがstaticか
+					if (colA.origin->isStatic) {
+						//	Bを調整
+						colB.AddPosition(penetration);
+					}
+					//	Bがstaticか
+					else if (colB.origin->isStatic) {
+						//	Aを調整
+						colA.AddPosition(-penetration);
+					}
+					//	どちらもstatic
+					else {
+						//	AもBも均等に調整
+						colB.AddPosition(penetration * 0.5f);
+						colA.AddPosition(-penetration);
+					}
+				}
 
 				//	イベントの発火
 				objA->OnCollision(colA.origin, colB.origin);

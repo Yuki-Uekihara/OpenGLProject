@@ -30,7 +30,7 @@ public:
 public:
 	virtual void Update(float deltaTime) override {
 		Engine* engine = GetOwner()->GetEngine();
-		GameObject& camera = engine->GetMainCamera();
+		GameObject& camera = *GetOwner();
 
 		//	AliveˆÈŠO‚Ìó‘Ô‚Å‚Íˆ—‚µ‚È‚¢
 		if (state != State::Alive)

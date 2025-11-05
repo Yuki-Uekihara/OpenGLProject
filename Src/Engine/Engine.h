@@ -72,6 +72,13 @@ private:
 
 	//	ワールド座標系のコライダーを表す構造体
 	struct WorldCollider {
+		//	座標を変更する
+		void AddPosition(const Vector3& v) {
+			origin->GetOwner()->position += v;
+			world.min += v;
+			world.max += v;
+		}
+
 		AABBColliderPtr origin;
 		AABB world;
 	};
