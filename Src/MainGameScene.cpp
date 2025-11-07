@@ -235,6 +235,30 @@ void MainGameScene::StatePlaying(Engine& engine, float deltaTime) {
 		//	状態をゲームオーバーに変更
 		state = &MainGameScene::StateGameOver;
 	}
+
+	//	左クリックでレイを飛ばす
+	if (engine.GetMouseClick(GLFW_MOUSE_BUTTON_LEFT)) {
+		//	レイの設定
+		const Ray ray = engine.GetRayFromMousePosition();
+		Engine::RaycastHit hitInfo;
+
+		const bool hit = engine.Raycast(
+			ray, hitInfo,
+			[](const AABBColliderPtr& col, float distance) {
+				//	交点が1m以内 && 当たったオブジェクトがプレイヤーじゃない
+				return distance < 2.0f && col->GetOwner()->name != "player";
+			}
+		);
+
+		if (hit) {
+			GameObject* owner = hitInfo.collider->GetOwner();
+
+			//	光線がドアに衝突していたらドアをどかす
+			if (owner->name == "door") {
+				owner->position.y = -2;		//	ドアを床下に移動
+			}
+		}
+	}
 }
 
 /*

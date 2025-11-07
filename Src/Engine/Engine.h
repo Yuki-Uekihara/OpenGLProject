@@ -9,6 +9,7 @@
 #include <GLFW/glfw3.h>
 #include <string>
 #include <utility>	//	std::pair
+#include <functional>
 
 #include "GameObject.h"
 #include "Scene.h"
@@ -58,6 +59,18 @@ private:
 
 	ScenePtr scene;					//	実行中のシーン
 	ScenePtr nextScene;				//	次のシーン
+
+	static constexpr float mouseClickSpeed = 0.3f;	//	クリックと判定する速度
+
+	//	マウスボタンの状態
+	struct MouseButton {
+		bool current = false;	//	現在のフレームのボタンの状態
+		bool prev = false;		//	前フレームのボタンの状態
+		bool click = false;		//	クリックの状態
+		float timer = 0.0f;		//	ボタンが押されている時間
+	};
+	MouseButton mouseButtons[3];	//	左、右、中
+
 
 	PointLight pointLight = {		//	点光源
 		{ 1.0f, 0.9f, 0.8f },
@@ -159,6 +172,35 @@ public:
 	template <class T>
 	void SetNextScene() { nextScene = std::make_shared<T>();  }
 
+	/*
+	 *	マウス座標から発射される光線を取得する
+	 */
+	Ray GetRayFromMousePosition() const;
+
+	//	光線の交差判定の結果
+	struct RaycastHit {
+		AABBColliderPtr collider;	//	最初に光線と交差したコライダー
+		Vector3 point;				//	最初の交点の座標
+		float distance;				//	最初の交点までの距離
+	};
+
+	/*
+	 *	交差判定の対象になるかどうか調べる
+	 *	@param	colldier
+	 *	@param	distance
+	 *	@return	bool
+	 */
+	using RaycastPredicate = std::function<bool(const AABBColliderPtr& collider, float distance)>;
+
+	/* 
+	 *	光線とコライダーの交差判定
+	 *	@param	ray			光線
+	 *	@param	hitInfo		光線と最初に交差したコライダーの情報
+	 *	@param	pred		交差判定を行うコライダーを選別する情報（述語）
+	 *	@return	bool		交差しているかどうか
+	 */
+	bool Raycast(const Ray& ray, RaycastHit& hitInfo, const RaycastPredicate& pred) const;
+
 public:
 	//	カメラを取得する
 	inline GameObject& GetMainCamera() { return camera; }
@@ -234,6 +276,16 @@ public:
 
 	//	ポイントライトの設定
 	inline void SetPointLight(const PointLight& p) { pointLight = p; }
+
+	//	マウスボタンのクリック状態を取得する
+	inline bool GetMouseClick(int button) const {
+		//	範囲外のボタンは処理しない
+		if (button < GLFW_MOUSE_BUTTON_LEFT || button > GLFW_MOUSE_BUTTON_MIDDLE)
+			return false;
+
+		return mouseButtons[button].click;
+	}
+
 };
 
 #endif // !_ENGINE_H_

@@ -232,6 +232,33 @@ void Engine::Update() {
 	if (deltaTime >= 0.5f)
 		deltaTime = 1.0f / 60.0f;
 
+	//	マウスボタンの状態を取得
+	for (size_t i = 0; i < std::size(mouseButtons); i++) {
+		MouseButton& b = mouseButtons[i];
+		b.prev = b.current;
+		b.current = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT + i);
+
+		//	押されている時間を更新
+		if (b.prev) {
+			b.timer += deltaTime;
+		}
+		else {
+			b.timer = 0.0f;
+		}
+
+		//	クリックの判定
+		//	前 && !今 && timer <= 0.3f
+		if (b.prev && !b.current && b.timer <= mouseClickSpeed) {
+			b.click = true;
+		}
+		else {
+			b.click = false;
+		}
+
+	}
+
+	
+
 	//	シーンの切り替え
 	if (nextScene) {
 		if (scene)
@@ -525,4 +552,118 @@ void Engine::ClearGameObjects() {
 		obj->OnDestroy();
 	}
 	gameObjects.clear();
+}
+
+/*
+ *	マウス座標から発射される光線を取得する
+ */
+Ray Engine::GetRayFromMousePosition() const {
+	//	スクリーン座標系のマウスカーソル座標を取得する
+	double x, y;
+	glfwGetCursorPos(window, &x, &y);
+
+	//	スクリーン座標系からNDC座標系に変換する
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h);
+
+	Vector3 nearPos = {
+		static_cast<float>(x / w * 2 - 1),
+		-static_cast<float>(y / h * 2 - 1),
+		-1
+	};
+	Vector3 farPos = { nearPos.x, nearPos.y, 1 };
+
+	//	深度値の計算結果が -1 ~ +1 になるようなパラメータA,Bを計算する
+	//	頂点シェーダの値と一致させる必要がある
+	const float near = 0.35f;
+	const float far = 1000.0f;
+	const float A = -2 * far * near / (far - near);
+	const float B = (far + near) / (far - near);
+
+	// NDC座標系からクリップ座標系に変換する
+	nearPos *= near;
+	farPos *= far;
+	nearPos.z = (nearPos.x - 1) / B;
+	farPos.z = (farPos.z - A) / B;
+
+	//	アスペクト比とFoVを計算する
+	const float aspectRatio = static_cast<float>(w) / static_cast<float>(h);
+	const float invFovScale = 1.0f / GetFovScale();
+
+	//	クリップ座標系からビュー座標系に変換する
+	nearPos.x *= invFovScale * aspectRatio;
+	nearPos.y *= invFovScale;
+	farPos.x *= invFovScale * aspectRatio;
+	farPos.y *= invFovScale;
+
+	//	ビュー座標系からワールド座標系に変換する
+	const float cameraSinY = std::sinf(camera.rotation.y);
+	const float cameraCosY = std::cosf(camera.rotation.y);
+
+	nearPos = {
+		nearPos.x * cameraCosY - near * cameraSinY,
+		nearPos.y,
+		nearPos.x * -cameraSinY - near * cameraCosY
+	};
+	nearPos += camera.position;
+
+	farPos = {
+		farPos.x * cameraCosY - far * cameraSinY,
+		farPos.y,
+		farPos.x * -cameraSinY - far * cameraCosY
+	};
+	farPos += camera.position;
+
+	//	光線の方向ベクトルを求める
+	Vector3 direction = farPos - nearPos;
+	direction = direction.Normalized();
+
+	return Ray{ nearPos, direction };
+}
+
+/*
+ *	光線とコライダーの交差判定
+ *	@param	ray			光線
+ *	@param	hitInfo		光線と最初に交差したコライダーの情報
+ *	@param	pred		交差判定を行うコライダーを選別する情報（述語）
+ *	@return	bool		交差しているかどうか
+ */
+bool Engine::Raycast(const Ray& ray, RaycastHit& hitInfo, const RaycastPredicate& pred) const {
+	//	交点の情報を初期化
+	hitInfo.collider = nullptr;
+	hitInfo.distance = FLT_MAX;
+
+	for (const auto& obj : gameObjects) {
+		for (const auto& col : obj->colliders) {
+			//	AABBをワールド座標系に変換
+			const AABB worldAABB = {
+				Vector3::Scale(col->aabb.min, obj->scale) + obj->position,
+				Vector3::Scale(col->aabb.max, obj->scale) + obj->position
+			};
+
+			//	光線との交差判定
+			float d;
+			if (!Intersect(worldAABB, ray, d))
+				continue;
+
+			//	交差判定の対象かどうか
+			if (!pred(col, d))
+				continue;
+
+			//	最初に当たったコライダーを保存
+			if (d < hitInfo.distance) {
+				hitInfo.collider = col;
+				hitInfo.distance = d;
+			}
+		}
+	}
+
+	//	交差するコライダーがある場合
+	if (hitInfo.collider) {
+		//	交点の座標を計算
+		hitInfo.point = ray.origin + ray.direction * hitInfo.distance;
+		return true;
+	}
+
+	return false;
 }

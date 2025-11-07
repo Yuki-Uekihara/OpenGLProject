@@ -3,6 +3,7 @@
  */
 
 #include "Collision.h"
+#include <algorithm>
 
 /*
  *  AABB同士の交差判定
@@ -72,4 +73,70 @@ bool Intersect(const AABB& a, const AABB& b, Vector3& penetration) {
     }
     penetration = { 0, 0, signedLength.z };
     return true;
+}
+
+/*
+ *  スラブ(ある軸に垂直な2平面に囲まれた範囲)と光線の交差判定
+ *  @param[in]  min         スラブの開始距離
+ *  @param[in]  max         スラブの終了距離
+ *  @param[in]  start       光線の発射点
+ *  @param[in]  direction   光線の向き
+ *  @param[out] tmin        AABBと光線の交差開始距離
+ *  @param[out] tmax        AABBと光線の交差終了距離
+ *  @return     bool
+ */
+bool IntersectSlab(float min, float max, float start, float direction, float& tmin, float& tmax) {
+    //  光線がスラブと平行な場合 -> 発射点がスラブの中にあるかどうかでチェック
+    if (abs(direction) < 0.001f) {
+        return (start >= min && start <= max);
+    }
+
+    //  光線とスラブが交差する開始時刻と終了時刻を求める
+    float t0 = (min - start) / direction;
+    float t1 = (max - start) / direction;
+
+    //  時刻の速いほうを開始時刻とする
+    if (t0 > t1)
+        std::swap(t0, t1);
+
+    //  共通の交差範囲を求める
+    //  以前の開始時刻と今回の開始時刻を比較し、遅い方を選択する
+    if (t0 > tmin)
+        tmin = t0;
+
+    //  以前の開始時刻と今回の開始時刻を比較し、早い方を選択する
+    if (t1 < tmax)
+        tmax = t1;
+
+    //  開始時刻 <= 終了時刻　の場合は交差している
+    return tmin <= tmax;
+}
+
+/*
+ *  AABBと光線の交差判定
+ *  @param[in]  aabb        判定対象のAABB
+ *  @param[in]  ray         判定対象の光線
+ *  @param[out] distance    光線がAABBと最初に交差する距離
+ *  @return     bool
+ */
+bool Intersect(const AABB& aabb, const Ray& ray, float& distance) {
+    //  共通の交差範囲
+    float tmin = 0;
+    float tmax = FLT_MAX;
+
+    //  Xスラブとの交差
+    if (!IntersectSlab(aabb.min.x, aabb.max.x, ray.origin.x, ray.direction.x, tmin, tmax))
+        return false;
+
+    //  Yスラブとの交差
+    if (!IntersectSlab(aabb.min.y, aabb.max.y, ray.origin.y, ray.direction.y, tmin, tmax))
+        return false;
+
+    //  Zスラブとの交差
+    if (!IntersectSlab(aabb.min.z, aabb.max.z, ray.origin.z, ray.direction.z, tmin, tmax))
+        return false;
+
+    //  交点までの距離を設定
+    distance = tmin;
+    return true;        //  交差している
 }
