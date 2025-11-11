@@ -10,6 +10,8 @@
 #include "EnemySkull.h"
 #include "TitleScene.h"
 #include "Engine/UIButton.h"
+#include "SimpleLever.h"
+#include "RemoteDoor.h"
 
 #include <fstream>
 #include <string>
@@ -139,6 +141,85 @@ bool MainGameScene::Initialize(Engine& engine) {
 			}
 		}
 	}
+
+	//	マップオブジェクトを読み込む
+	std::vector<MapObjectPtr> mapObjects;
+	mapObjects.reserve(100);
+	int readLines = mapSizeY + 1;	//	読み込んだ行数
+	while (!file.eof()) {
+		//	1行読み込む
+		std::string s;
+		std::getline(file, s);
+		++readLines;
+
+		//	行が２文字未満、または行頭が // の場合は処理しない
+		if (s.size() < 2 || (s[0] == '/' && s[1] == '/'))
+			continue;
+
+		//	オブジェクトデータを読み込む
+		char type[100];			//	1:オブジェクトの種類
+		char name[100];			//	2:オブジェクトの識別名
+		Vector3 pos;			//	3,4:オブジェクトの座標
+		float rotY;				//	5:オブジェクトのy軸回転
+		char linkedName[100];	//	6:連動するオブジェクトの識別名
+
+		const int count = sscanf_s(s.c_str(),
+			"%99s %99s %f %f %f %99s",
+			type, 99, name, 99, &pos.x, &pos.z, &rotY, linkedName, 99);
+
+		//	読み込みに成功したフィールドの数が5個未満なら処理しない
+		if (count < 5) {
+			//	2個以上読み込めた場合はオブジェクトの定義とみなす
+			if (count >= 2) {
+				//	エラー識別用
+			}
+			continue;
+		}
+
+		//	マップ座標をワールド座標に変換
+		pos.x = (pos.x + 0.5f) * squareSize;
+		pos.y = 0;
+		pos.z = (pos.z + 0.5f) * squareSize;
+
+		//	回転　度数→弧度
+		rotY *= Deg2Rad;
+
+		//	読み込みに成功していたら「連動元のオブジェクト」を検索する
+		MapObjectPtr linkedObject;	//	連動元オブジェクト
+		if (count >= 6) {
+			auto itr = std::find_if(
+				mapObjects.begin(), mapObjects.end(),
+				[linkedName](const MapObjectPtr& obj) {
+					return linkedName == obj->GetOwner()->name;
+				}
+			);
+
+			if (itr != mapObjects.end()) {
+				linkedObject = *itr;
+			}
+		}
+
+		//	レバーを作成
+		if (strcmp(type, "lever") == 0) {
+			auto lever = engine.Create<GameObject>(
+				name, pos, { 0.0f, rotY, 0.0f }
+			);
+			mapObjects.push_back(lever->AddComponent<SimpleLever>());
+		}
+		//	リモートドアを作成
+		else if (strcmp(type, "remote_door") == 0) {
+			auto door = engine.Create<GameObject>(
+				name, pos, { 0.0f, rotY, 0.0f }
+			);
+			auto component = door->AddComponent<RemoteDoor>();
+			if (linkedObject) {
+				linkedObject->AddRemoteObject(component);
+			}
+			mapObjects.push_back(component);
+		}
+	}
+
+
 
 	//	カメラを操作するプレイヤーコンポーネントを生成
 	auto player = engine.Create<GameObject>("player", { 0.0f, 10.0f, 0.0f });
