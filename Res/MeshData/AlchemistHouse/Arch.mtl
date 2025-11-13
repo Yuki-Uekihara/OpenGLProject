@@ -1,0 +1,35 @@
+# Blender 3.4.1 MTL File: 'None'
+# www.blender.org
+
+newmtl PlasterBare05.001
+Ns 200.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd PlasterBare05.tga
+map_Bump -bm 0.500000 C:/PlasterBare05_n.png
+
+newmtl WoodRough03.001
+Ns 200.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd Wood01.tga
+map_Bump -bm 2.000000 C:/Wood01_n.png
+
+newmtl WoodRough04.001
+Ns 200.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd WoodRough04.tga
+map_Bump -bm 1.000000 C:/WoodRough04_n.png

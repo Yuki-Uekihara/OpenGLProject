@@ -46,17 +46,34 @@ bool MainGameScene::Initialize(Engine& engine) {
 	Vector3 startPoint = { 3, 1, 3 };
 
 	//	床を生成
-	auto floor = engine.Create<GameObject>("floor");
-	floor->scale = {
-		static_cast<float>(mapSizeX) * squareScale,
-		1,
-		static_cast<float>(mapSizeY) * squareScale
-	};
-	floor->position = { floor->scale.x, -1, floor->scale.z };
-	floor->texColor = std::make_shared<Texture>("Res/floor.tga");
-	floor->meshId = MeshId_box;
+	const auto meshFloor = engine.GetStaticMesh("Res/MeshData/AlchemistHouse/Floor.obj");
+	for (int y = 0; y < mapSizeY; y++) {
+		for (int x = 0; x < mapSizeX; x++) {
+			const float posX = static_cast<float>(x + 0.5f) * squareSize;	//	サイズ調整
+			const float posZ = static_cast<float>(y + 0.5f) * squareSize;	//	サイズ調整
 
-	auto texwall = std::make_shared<Texture>("Res/wall.tga");
+			auto floor = engine.Create<GameObject>("floor");
+			floor->position = Vector3(posX, 0.0f, posZ);
+			floor->scale = Vector3::one * 1.075f;
+			floor->staticMesh = meshFloor;
+		}
+	}
+
+	//	天井を生成
+	const auto meshCeil = engine.GetStaticMesh("Res/MeshData/AlchemistHouse/Ceil.obj");
+	for (int y = 0; y < mapSizeY; y++) {
+		for (int x = 0; x < mapSizeX; x++) {
+			const float posX = static_cast<float>(x + 0.5f) * squareSize;	//	サイズ調整
+			const float posZ = static_cast<float>(y + 0.5f) * squareSize;	//	サイズ調整
+
+			auto ceil = engine.Create<GameObject>("ceil");
+			ceil->position = Vector3(posX, 1.85f, posZ);
+			ceil->scale = Vector3::one * 1.075f;
+			ceil->staticMesh = meshCeil;
+		}
+	}
+
+	//auto texwall = std::make_shared<Texture>("Res/wall.tga");
 	auto texCrystalBlue = std::make_shared<Texture>("Res/MeshData/crystal_blue.tga");
 
 	for (int y = 0; y < mapSizeY; y++) {
@@ -70,7 +87,7 @@ bool MainGameScene::Initialize(Engine& engine) {
 				auto wall = engine.Create<GameObject>("wall", { posX, 0, posZ });
 				wall->scale = { squareScale, squareScale, squareScale };
 				wall->staticMesh = engine.GetStaticMesh(
-					"Res/MeshData/BOX.obj"
+					"Res/MeshData/AlchemistHouse/BOX.obj"
 				);
 			}
 
@@ -115,12 +132,13 @@ bool MainGameScene::Initialize(Engine& engine) {
 				//	アーチ
 				auto arch = engine.Create<GameObject>("arch", { posX, 0, posZ });
 				arch->scale = Vector3::one * squareScale;
-				arch->staticMesh = engine.GetStaticMesh("Res/MeshData/door/arch.obj");
+				arch->rotation.y = 180.0f * Deg2Rad;
+				arch->staticMesh = engine.GetStaticMesh("Res/MeshData/AlchemistHouse/Arch.obj");
 
 				//	ドア
 				auto door = engine.Create<GameObject>("door", { posX, 0, posZ });
 				door->scale = Vector3::one * squareScale;
-				door->staticMesh = engine.GetStaticMesh("Res/MeshData/door/door.obj");
+				door->staticMesh = engine.GetStaticMesh("Res/MeshData/AlchemistHouse/Door.obj");
 				//	ドアのコライダー
 				auto collider = door->AddComponent<AABBCollider>();
 				collider->aabb = {

@@ -22,9 +22,7 @@ public:
 		GameObject* owner = GetOwner();
 		Engine* engine = owner->GetEngine();
 
-		owner->staticMesh = engine->GetStaticMesh(
-			"Res/MeshData/door/door.obj"
-		);
+		owner->staticMesh = engine->GetStaticMesh("Res/MeshData/AlchemistHouse/Door.obj");
 		auto collider = owner->AddComponent<AABBCollider>();
 		collider->aabb = {
 			{ -1.0f, 0.0f, -0.5f },
@@ -43,9 +41,7 @@ public:
 		auto arch = engine->Create<GameObject>(
 			owner->name, owner->position, owner->rotation
 		);
-		arch->staticMesh = engine->GetStaticMesh(
-			"Res/MeshData/door/arch.obj"
-		);
+		arch->staticMesh = engine->GetStaticMesh("Res/MeshData/AlchemistHouse/Arch.obj");
 	}
 
 	//	ƒhƒA‚ğŠJ‚¯‚é

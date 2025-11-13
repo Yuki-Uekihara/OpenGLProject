@@ -203,11 +203,15 @@ int Engine::Initialize() {
 	//	OBJファイルの読み込み
 	meshBuffer->LoadOBJ("Res/MeshData/skull/skull_highpoly_with_normal.obj");
 	meshBuffer->LoadOBJ("Res/MeshData/ghost/ghost.obj");
-	meshBuffer->LoadOBJ("Res/MeshData/door/door.obj");
-	meshBuffer->LoadOBJ("Res/MeshData/door/arch.obj");
+	//meshBuffer->LoadOBJ("Res/MeshData/door/door.obj");
+	//meshBuffer->LoadOBJ("Res/MeshData/door/arch.obj");
 	meshBuffer->LoadOBJ("Res/MeshData/lever/lever_arm.obj");
 	meshBuffer->LoadOBJ("Res/MeshData/lever/lever_cover.obj");
-	meshBuffer->LoadOBJ("Res/MeshData/BOX.obj");
+	meshBuffer->LoadOBJ("Res/MeshData/AlchemistHouse/BOX.obj");
+	meshBuffer->LoadOBJ("Res/MeshData/AlchemistHouse/Door.obj");
+	meshBuffer->LoadOBJ("Res/MeshData/AlchemistHouse/Arch.obj");
+	meshBuffer->LoadOBJ("Res/MeshData/AlchemistHouse/Ceil.obj");
+	meshBuffer->LoadOBJ("Res/MeshData/AlchemistHouse/Floor.obj");
 
 	//	一元管理配列の容量を予約
 	gameObjects.reserve(1000);

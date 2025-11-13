@@ -59,6 +59,15 @@ public:
 			camera.position.z += cameraSpeed * cameraCos;
 		}
 
+		//	テスト上下移動
+		if (engine->GetKey(GLFW_KEY_Q)) {
+			camera.position.y -= cameraSpeed;
+		}
+		if (engine->GetKey(GLFW_KEY_E)) {
+			camera.position.y += cameraSpeed;
+		}
+
+
 		//	テストカメラの回転
 		if (engine->GetKey(GLFW_KEY_LEFT)) {
 			camera.rotation.y -= 0.05f;
