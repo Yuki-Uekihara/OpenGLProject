@@ -69,8 +69,9 @@ bool MainGameScene::Initialize(Engine& engine) {
 			if (tileId == '#') {
 				auto wall = engine.Create<GameObject>("wall", { posX, 0, posZ });
 				wall->scale = { squareScale, squareScale, squareScale };
-				wall->texColor = texwall;
-				wall->meshId = MeshId_wall;
+				wall->staticMesh = engine.GetStaticMesh(
+					"Res/MeshData/BOX.obj"
+				);
 			}
 
 			//	クリスタルを生成
@@ -338,6 +339,11 @@ void MainGameScene::StatePlaying(Engine& engine, float deltaTime) {
 			if (owner->name == "door") {
 				owner->position.y = -2;		//	ドアを床下に移動
 			}
+
+			//	MapObjectコンポーネントを持っているかどうか
+			auto p = owner->GetComponent<MapObject>();
+			if (p)
+				p->OnClick();
 		}
 	}
 }

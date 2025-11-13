@@ -38,7 +38,7 @@ public:
 			};
 		}
 
-		collider->isTrigger = true;
+		collider->isStatic = true;
 
 		auto arch = engine->Create<GameObject>(
 			owner->name, owner->position, owner->rotation

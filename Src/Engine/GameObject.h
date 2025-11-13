@@ -83,6 +83,25 @@ public:
 		return p;
 	}
 
+	/*
+	 *	コンポーネントを検索する
+	 *	多くのコンポーネントを持つゲームオブジェクトに対して使用すると
+	 *	検索に時間がかかる場合がある
+	 *
+	 *	@tparam	T	検索するコンポーネント
+	 *	@return	T*
+	 */
+	template<class T>
+	std::shared_ptr<T> GetComponent() {
+		for (auto& c : components) {
+			//	shard_ptの場合は dynamic_castではなくdynamic_pointer_castを使う
+			auto p = std::dynamic_pointer_cast<T>(c);
+			if (p)
+				return p;	//	見つかった場合はコンポーネントを返す
+		}
+		return nullptr;		//	見つからなかった場合は nullptr を返す
+	}
+
 	//	ゲームオブジェクトからコンポーネントを削除する
 	void RemoveComponent();
 

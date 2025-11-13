@@ -17,11 +17,33 @@ layout (location = 2) out vec3 outNormal;	//	法線
 //layout (location = 0) uniform float timer;	//	時間
 layout (location = 0) uniform vec3 scale;		//	拡大率
 layout (location = 1) uniform vec3 position;	//	平行移動
-layout (location = 2) uniform vec2 sinCosY;		//	Y軸回転
+layout (location = 2) uniform vec4 sinCosXY;		//	X,Y軸回転
 layout (location = 3) uniform vec2 aspectRatioAndScaleFov;	//	アスペクト比と視野角
 layout (location = 4) uniform vec3 cameraPosition;	//	カメラの平行移動
 layout (location = 5) uniform vec2 cameraSinCosY;	//	カメラのY軸回転
 
+/*
+ *	ベクトルを回転させる
+ *	@param	v		ベクトル
+ *	@param	sinCosX	X軸回転に使用する sin と cos の値
+ *	@param	sinCosX	Y軸回転に使用する sin と cos の値
+ *	@return Vector3	x軸→y軸の順番で回転させたベクトル
+ */
+vec3 RotateXY(vec3 v, vec2 sinCosX, vec2 sinCosY) {
+	//	X軸回転
+	v.zy = vec2(
+		v.z * sinCosX.y + v.y * sinCosX.x,
+		v.z * -sinCosX.x + v.y * sinCosX.y
+	);
+
+	//	Y軸回転
+	v.xz = vec2(
+		v.x * sinCosY.y + v.z * sinCosY.x,
+		v.x * -sinCosY.x + v.z * sinCosY.y
+	);
+
+	return v;
+}
 
 void main() {
 	outTexcoord = inTexcoord;
@@ -29,20 +51,13 @@ void main() {
 	//	ローカル座標系からワールド座標系に変換
 	vec3 pos = inPosition * scale;
 
-	float sinY = sinCosY.x;
-	float cosY = sinCosY.y;
-	gl_Position.x = pos.x * cosY + pos.z * sinY;
-	gl_Position.y = pos.y;
-	gl_Position.z = pos.x * -sinY + pos.z * cosY;
-
+	gl_Position.xyz = RotateXY(pos, sinCosXY.xy, sinCosXY.zw);
 	gl_Position.xyz += position;	//	スウィズリング(swizzling)
 	
 	outPosition = gl_Position.xyz;
 
 	//	ワールド法線を計算
-	outNormal.x = inNormal.x * cosY + inNormal.z * sinY;
-	outNormal.y = inNormal.y;
-	outNormal.z = inNormal.x * -sinY + inNormal.z * cosY;
+	outNormal = RotateXY(inNormal, sinCosXY.xy, sinCosXY.zw);
 
 	//	ワールド座標系からビュー座標系に変換
 	pos = gl_Position.xyz - cameraPosition;

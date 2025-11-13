@@ -207,6 +207,7 @@ int Engine::Initialize() {
 	meshBuffer->LoadOBJ("Res/MeshData/door/arch.obj");
 	meshBuffer->LoadOBJ("Res/MeshData/lever/lever_arm.obj");
 	meshBuffer->LoadOBJ("Res/MeshData/lever/lever_cover.obj");
+	meshBuffer->LoadOBJ("Res/MeshData/BOX.obj");
 
 	//	一元管理配列の容量を予約
 	gameObjects.reserve(1000);
@@ -374,7 +375,10 @@ void Engine::DrawGameObject(GameObjectList::iterator begin, GameObjectList::iter
 		glProgramUniform4fv(prog, 100, 1, obj->color);
 		glProgramUniform3fv(prog, 0, 1, &obj->scale.x);
 		glProgramUniform3fv(prog, 1, 1, &obj->position.x);
-		glProgramUniform2f(prog, 2, sinf(obj->rotation.y), cosf(obj->rotation.y));
+		glProgramUniform4f(prog, 2,
+			sinf(obj->rotation.x), cosf(obj->rotation.x),
+			sinf(obj->rotation.y), cosf(obj->rotation.y)
+		);
 
 		//	描画に使うテクスチャをバインド
 		if (obj->texColor) {
