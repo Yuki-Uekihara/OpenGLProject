@@ -24,6 +24,7 @@ class Engine;
  */
 enum RenderQueue {
 	RenderQueue_geometry = 2000,	//	一般的な図形
+	RenderQueue_tranparent = 3000,	//	半透明な図形
 	RenderQueue_overlay = 4000,		//	UI, 全画面用エフェクト
 	RenderQueue_max = 5000,			//	最大値
 };

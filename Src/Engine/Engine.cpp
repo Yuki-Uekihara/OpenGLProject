@@ -212,6 +212,7 @@ int Engine::Initialize() {
 	meshBuffer->LoadOBJ("Res/MeshData/AlchemistHouse/Arch.obj");
 	meshBuffer->LoadOBJ("Res/MeshData/AlchemistHouse/Ceil.obj");
 	meshBuffer->LoadOBJ("Res/MeshData/AlchemistHouse/Floor.obj");
+	meshBuffer->LoadOBJ("Res/MeshData/HorrorHospital/Lamp.obj");
 
 	//	一元管理配列の容量を予約
 	gameObjects.reserve(1000);
@@ -324,18 +325,31 @@ void Engine::Render() {
 		[](const GameObjectPtr& a, const GameObjectPtr& b) { return a->renderQueue < b->renderQueue; }
 	);
 
-	//	overlayキューの先頭検索
+	//	transparentキューの先頭を検索
+	const auto transparentBegin = std::lower_bound(
+		gameObjects.begin(), gameObjects.end(),
+		RenderQueue_tranparent,
+		[](const GameObjectPtr& obj, int v) { return obj->renderQueue < v; }
+	);
+
+	//	overlayキューの先頭を検索
 	//	lower_bound 「検索条件を満たさない最初の要素のイテレータ」を返す
 	const auto overlayBegin = std::lower_bound(
-		gameObjects.begin(), gameObjects.end(),		//	範囲の先頭, 範囲の終端
+		transparentBegin, gameObjects.end(),		//	範囲の先頭, 範囲の終端
 		RenderQueue_overlay,						//	検索する値
 		[](const GameObjectPtr& obj, int v) {		//	検索する条件
 			return obj->renderQueue < v;
 		}
 	);
 
-	//	overlay以前の描画
-	DrawGameObject(gameObjects.begin(), overlayBegin);
+	//	transparent以前の描画
+	DrawGameObject(gameObjects.begin(), transparentBegin);
+
+	//	transparentからoverlayまでのキューの描画
+	glDepthMask(GL_FALSE);		//	深度バッファの書き込みを禁止
+	DrawGameObject(transparentBegin, overlayBegin);
+	glDepthMask(GL_TRUE);		//	深度バッファの書き込みを許可
+
 
 	//	overlay以降の描画
 	glDisable(GL_DEPTH_TEST);

@@ -167,6 +167,7 @@
     <ClInclude Include="Src\Engine\UILayout.h" />
     <ClInclude Include="Src\Engine\VecMath.h" />
     <ClInclude Include="Src\Engine\VertexArrayObject.h" />
+    <ClInclude Include="Src\FluorescentLight.h" />
     <ClInclude Include="Src\glad\include\glad\glad.h" />
     <ClInclude Include="Src\glad\include\KHR\khrplatform.h" />
     <ClInclude Include="Src\GoalEvent.h" />

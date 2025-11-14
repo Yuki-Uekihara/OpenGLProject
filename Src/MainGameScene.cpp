@@ -12,6 +12,7 @@
 #include "Engine/UIButton.h"
 #include "SimpleLever.h"
 #include "RemoteDoor.h"
+#include "FluorescentLight.h"
 
 #include <fstream>
 #include <string>
@@ -218,14 +219,14 @@ bool MainGameScene::Initialize(Engine& engine) {
 			}
 		}
 
-		//	レバーを作成
+		//	レバーを生成
 		if (strcmp(type, "lever") == 0) {
 			auto lever = engine.Create<GameObject>(
 				name, pos, { 0.0f, rotY, 0.0f }
 			);
 			mapObjects.push_back(lever->AddComponent<SimpleLever>());
 		}
-		//	リモートドアを作成
+		//	リモートドアを生成
 		else if (strcmp(type, "remote_door") == 0) {
 			auto door = engine.Create<GameObject>(
 				name, pos, { 0.0f, rotY, 0.0f }
@@ -235,6 +236,15 @@ bool MainGameScene::Initialize(Engine& engine) {
 				linkedObject->AddRemoteObject(component);
 			}
 			mapObjects.push_back(component);
+		}
+		//	ライトを生成
+		else if (strcmp(type, u8"ライト") == 0) {
+			//	蛍光灯を生成
+			if (strcmp(name, u8"蛍光灯") == 0) {
+				pos.y = 1.9f;
+				auto light = engine.Create<GameObject>(name, pos, { 0.0f, rotY, 0.0f });
+				light->AddComponent<FluorescentLight>();
+			}
 		}
 	}
 
