@@ -138,6 +138,7 @@
   <ItemGroup>
     <ClCompile Include="Src\EnemySkull.cpp" />
     <ClCompile Include="Src\Engine\Collision.cpp" />
+    <ClCompile Include="Src\Engine\EasyAudio\EasyAudio.cpp" />
     <ClCompile Include="Src\Engine\Engine.cpp" />
     <ClCompile Include="Src\Engine\GameObject.cpp" />
     <ClCompile Include="Src\Engine\Mesh.cpp" />
@@ -153,12 +154,14 @@
     <ClCompile Include="Src\TitleScene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\AudioSettings.h" />
     <ClInclude Include="Src\EnemySkull.h" />
     <ClInclude Include="Src\Engine\AABBCollider.h" />
     <ClInclude Include="Src\Engine\Billboard.h" />
     <ClInclude Include="Src\Engine\BufferObject.h" />
     <ClInclude Include="Src\Engine\Collision.h" />
     <ClInclude Include="Src\Engine\Component.h" />
+    <ClInclude Include="Src\Engine\EasyAudio\EasyAudio.h" />
     <ClInclude Include="Src\Engine\Engine.h" />
     <ClInclude Include="Src\Engine\GameObject.h" />
     <ClInclude Include="Src\Engine\Mesh.h" />

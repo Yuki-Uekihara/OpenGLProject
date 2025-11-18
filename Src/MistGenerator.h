@@ -42,11 +42,14 @@ public:
 		//	–¶‚ğ”­¶‚³‚¹‚éˆÊ’u‚ğƒ‰ƒ“ƒ_ƒ€‚É’Šo
 		Vector3 pos = owner->position;
 		pos.x += Random::Range(-range.x, range.x);
-		pos.y += 0.15f;		//	’²®
+		pos.y += Random::Range(0.15f, 0.25f);		//	’²®
 		pos.z += Random::Range(-range.y, range.y);
 
 		//	–¶‚ğ¶¬
 		auto mist = engine->Create<GameObject>("mist", pos);
+		mist->scale = Vector3(
+			Random::Range(0.2f, 0.5f), Random::Range(0.1f, 0.2f), 1.0f
+		);
 		mist->meshId = MeshId_plane_xy;
 		mist->texColor = texMist;
 		mist->renderQueue = RenderQueue_tranparent;

@@ -3,6 +3,8 @@
  */
 
 #include "Engine.h"
+#include "EasyAudio/EasyAudio.h"
+
 #include <fstream>
 #include <filesystem>
 #include <vector>
@@ -53,7 +55,18 @@ GLuint CompileShader(GLenum type, const char* filename) {
 	return object;
 }
 
-
+//	必要な音声データ
+//	BGM　2つ　	タイトル、げーむ中
+//	SE　5つ		ボタンクリック音、ドア開く音、レバー動作音、
+//				ゴールした音、敵に接触音
+//	著作権表記テキスト残しておく。どのサイト、曲の名前。
+// 
+//	BGM
+//	国内：最大規模の投稿サイト　dova-s.jp
+//	海外：世界最大規模の投稿サイト　soundcloud.com
+//	
+//	SE
+//	freesound.org	ポンぺウ・ファブラ大学の音楽技術グループ運営の音声投稿サイト
 
 /*
  *	ゲームエンジンを実行する
@@ -64,11 +77,21 @@ int Engine::Run() {
 	if (result)
 		return result;
 
+	//	音声ライブラリの初期化
+	if (!EasyAudio::Initialize())
+		return -1;		//	初期化失敗
+
 	while (!glfwWindowShouldClose(window)) {
 		Update();
 		Render();
 		RemoveGameObject();
+
+		//	音声ライブラリの更新
+		EasyAudio::Update();
 	}
+
+	//	音声ライブラリの終了
+	EasyAudio::Finalize();
 
 	glfwTerminate();
 	return 0;

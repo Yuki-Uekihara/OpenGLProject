@@ -7,6 +7,8 @@
 #include "Engine/UILayout.h"
 #include "Engine/UIButton.h"
 #include "Engine/Engine.h"
+#include "Engine/EasyAudio/EasyAudio.h"
+#include "AudioSettings.h"
 
  /*
   *  タイトル画面の初期化処理
@@ -22,6 +24,7 @@ bool TitleScene::Initialize(Engine& engine) {
 		[this](UIButton* button) {
 			fadeTimer = 1.0f;
 			button->interactable = false;
+			EasyAudio::PlayOneShot(SE::buttonClick);
 		}
 	);
 
@@ -33,6 +36,9 @@ bool TitleScene::Initialize(Engine& engine) {
 	fadeObject->scale = { fbSize.x / fbSize.y, 1.0f, 1.0f };
 	//	カラーを変更
 	std::fill_n(fadeObject->color, 4, 0.0f);
+
+	//	BGMを再生
+	EasyAudio::Play(AudioPlayer::bgm, BGM::title, 1.0f, true);
 
 	return true;
 }
@@ -59,4 +65,5 @@ void TitleScene::Update(Engine& engine, float deltaTime) {
  */
 void TitleScene::Finalize(Engine& engine) {
 	engine.ClearGameObjects();
+	EasyAudio::Stop(AudioPlayer::bgm);
 }
