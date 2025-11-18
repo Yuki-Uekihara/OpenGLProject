@@ -141,6 +141,7 @@
     <ClCompile Include="Src\Engine\Engine.cpp" />
     <ClCompile Include="Src\Engine\GameObject.cpp" />
     <ClCompile Include="Src\Engine\Mesh.cpp" />
+    <ClCompile Include="Src\Engine\Random.cpp" />
     <ClCompile Include="Src\Engine\Texture.cpp" />
     <ClCompile Include="Src\Engine\UIButton.cpp" />
     <ClCompile Include="Src\Engine\UILayout.cpp" />
@@ -161,6 +162,7 @@
     <ClInclude Include="Src\Engine\Engine.h" />
     <ClInclude Include="Src\Engine\GameObject.h" />
     <ClInclude Include="Src\Engine\Mesh.h" />
+    <ClInclude Include="Src\Engine\Random.h" />
     <ClInclude Include="Src\Engine\Scene.h" />
     <ClInclude Include="Src\Engine\Texture.h" />
     <ClInclude Include="Src\Engine\UIButton.h" />
@@ -173,6 +175,8 @@
     <ClInclude Include="Src\GoalEvent.h" />
     <ClInclude Include="Src\MainGameScene.h" />
     <ClInclude Include="Src\MapObject.h" />
+    <ClInclude Include="Src\Mist.h" />
+    <ClInclude Include="Src\MistGenerator.h" />
     <ClInclude Include="Src\PlayerComponent.h" />
     <ClInclude Include="Src\RemoteDoor.h" />
     <ClInclude Include="Src\SimpleLever.h" />

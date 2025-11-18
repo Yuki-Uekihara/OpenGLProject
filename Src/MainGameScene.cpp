@@ -13,6 +13,7 @@
 #include "SimpleLever.h"
 #include "RemoteDoor.h"
 #include "FluorescentLight.h"
+#include "MistGenerator.h"
 
 #include <fstream>
 #include <string>
@@ -244,6 +245,15 @@ bool MainGameScene::Initialize(Engine& engine) {
 				pos.y = 1.9f;
 				auto light = engine.Create<GameObject>(name, pos, { 0.0f, rotY, 0.0f });
 				light->AddComponent<FluorescentLight>();
+			}
+		}
+		//	霧ジェネレータを生成
+		else if (strcmp(type, u8"霧") == 0) {
+			Vector2 range;
+			if (sscanf_s(name, "%fx%f", &range.x, &range.y) == 2) {
+				auto mistGen = engine.Create<GameObject>(name, pos);
+				auto mistGenComp = mistGen->AddComponent<MistGenerator>();
+				mistGenComp->range = range;
 			}
 		}
 	}
