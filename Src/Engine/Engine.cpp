@@ -123,6 +123,9 @@ int Engine::Initialize() {
 		return 1;	//	失敗
 	}
 
+	//	ライトの初期化
+	InitializeLight();
+
 	//	シェーダーを読み込んでコンパイル
 	vs = CompileShader(GL_VERTEX_SHADER, "Res/standard.vert");
 	fs = CompileShader(GL_FRAGMENT_SHADER, "Res/standard.frag");
@@ -342,6 +345,8 @@ void Engine::Render() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
 
+	UpdateShaderLight();
+
 	//	ゲームオブジェクトをレンダーキュー順にソート
 	std::stable_sort(
 		gameObjects.begin(), gameObjects.end(),
@@ -388,21 +393,6 @@ void Engine::Render() {
  *	ゲームオブジェクト配列を描画する
  */
 void Engine::DrawGameObject(GameObjectList::iterator begin, GameObjectList::iterator end) {
-	//	点光源の情報を設定
-	glProgramUniform3f(prog, 101,
-		pointLight.color.x * pointLight.intensity,
-		pointLight.color.y * pointLight.intensity,
-		pointLight.color.z * pointLight.intensity
-	);
-
-	glProgramUniform4f(prog, 102,
-		pointLight.position.x,
-		pointLight.position.y,
-		pointLight.position.z,
-		pointLight.radius
-	);
-
-
 	//	メッシュバッファからVAOをバインド
 	glBindVertexArray(*meshBuffer->GetVAO());
 
@@ -588,6 +578,87 @@ void Engine::RemoveGameObject() {
 	//	ローカル変数 destroyList の寿命はここまで
 }
 
+/*
+ *	カメラに近いライトを選択してGPUのメモリにコピーする
+ */
+void Engine::UpdateShaderLight() {
+	//	コピーするライトがなければライト数を０に設定する
+	if (usedLight.empty()) {
+		glProgramUniform1i(prog, locLightColor, 0);
+		return;
+	}
+
+	//	使用中のライト配列から、未使用になったライトを除外する
+	const auto itrUnused = std::remove_if(
+		usedLight.begin(), usedLight.end(),
+		[this](int i) { return !lights[i].used; }
+	);
+	usedLight.erase(itrUnused, usedLight.end());
+
+	//	重複する番号を除外する
+	std::sort(usedLight.begin(), usedLight.end());
+	const auto itrUnique = std::unique(usedLight.begin(), usedLight.end());
+	usedLight.erase(itrUnique, usedLight.end());
+
+	//	カメラの正面ベクトルを計算する
+	const Vector3 forward = {
+		-std::sinf(camera.rotation.y), 0.0f, -std::cosf(camera.rotation.y)
+	};
+
+	//	カメラからライトまでの距離を計算する
+	struct Distance {
+		float distance;			//	カメラからライトの半径までの距離
+		const PointLight* p;	//	ライトのアドレス
+	};
+	std::vector<Distance> distanceList;
+	distanceList.reserve(lights.size());
+
+	for (auto index : usedLight) {
+		const auto& light = lights[index];
+		const Vector3 v = light.position - camera.position;
+
+		//	カメラの後ろにあるライトは無視
+		float dot = forward.x * v.x + forward.y * v.y + forward.z * v.z;
+		if (dot <= -light.radius)
+			continue;
+
+		//	カメラからライトの半径までの距離
+		const float d = v.Magnitude() - light.radius;
+		distanceList.push_back({ d, &light });
+	}
+
+	//	画面に影響するライトがなければライト数を０に設定する
+	if (distanceList.empty()) {
+		glProgramUniform1i(prog, locLightColor, 0);
+		return;
+	}
+
+	//	カメラに近いライトを優先する
+	std::stable_sort(
+		distanceList.begin(), distanceList.end(),
+		[&](const auto& a, const auto& b) { return a.distance < b.distance; }
+	);
+
+	//	ライトデータをGPUメモリにコピーする
+	const int lightCount = static_cast<int>(
+		std::min(distanceList.size(), maxShaderLightCount)
+		);
+	std::vector<Vector3> color(lightCount);
+	std::vector<Vector4> positionAndRadius(lightCount);
+	for (int i = 0; i < lightCount; i++) {
+		const PointLight* p = distanceList[i].p;
+		color[i] = p->color * p->intensity;
+		positionAndRadius[i] = {
+			p->position.x, p->position.y, p->position.z,
+			p->radius
+		};
+
+		glProgramUniform3fv(prog, locLightColor, lightCount, &color[0].x);
+		glProgramUniform4fv(prog, locLightPositionAndRadius, lightCount, &positionAndRadius[0].x);
+		glProgramUniform1i(prog, locLightCount, lightCount);
+	}
+}
+
 
 /*
  *	ゲームエンジンから全てのゲームオブジェクトを破棄する
@@ -711,4 +782,59 @@ bool Engine::Raycast(const Ray& ray, RaycastHit& hitInfo, const RaycastPredicate
 	}
 
 	return false;
+}
+
+/*
+ *	ライト配列を初期化する
+ */
+void Engine::InitializeLight() {
+	//	指定されたライトの数を生成
+	lights.resize(lightResizeCount);
+	usedLight.reserve(lightResizeCount);
+	freeLight.resize(lightResizeCount);
+
+	//	全てのライトを未使用ライト配列に「逆順」で追加
+	for (int i = 0; i < lightResizeCount; i++) {
+		freeLight[i] = static_cast<int>(lightResizeCount - i - 1);
+	}
+}
+
+/*
+ *	新しいライトの取得
+ *	@return	ライトのインデックス
+ */
+int Engine::AllocateLight() {
+	//	未使用のライトがなければライト配列を拡張する
+	if (freeLight.empty()) {
+		const size_t oldSize = lights.size();
+		lights.reserve(oldSize + lightResizeCount);
+		//	拡張した分を「逆順」で未使用ライト配列に追加
+		for (size_t i = lights.size() - 1; i >= oldSize; i--) {
+			freeLight.push_back(static_cast<int>(i));
+		}
+	}
+
+	//	未使用ライト配列の末尾からインデックスを取り出す
+	const int index = freeLight.back();
+	freeLight.pop_back();
+
+	//	取り出したインデックスを使用中ライト配列に追加
+	usedLight.push_back(index);
+	//	そのインデックスのライトを使用中に変更する
+	lights[index].used = true;
+
+	return index;
+}
+
+/*
+ *	ライトの解放
+ *	@param	ライトのインデックス
+ */
+void Engine::DeallocateLight(int index) {
+	if (index >= 0 && index < lights.size()) {
+		//	インデックスを未使用ライト配列に追加
+		freeLight.push_back(index);
+		//	そのインデックスのライトを未使用に変更する
+		lights[index].used = false;
+	}
 }

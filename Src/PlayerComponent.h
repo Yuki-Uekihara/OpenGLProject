@@ -7,6 +7,7 @@
 
 #include "Engine/Component.h"
 #include "Engine/Engine.h"
+#include "Engine/Light.h"
 
 /*
  *	プレイヤー
@@ -28,6 +29,13 @@ public:
 	virtual ~PlayerComponent() = default;
 
 public:
+	virtual void Awake() override {
+		auto light = GetOwner()->AddComponent<Light>();
+		light->color = { 1.0f, 0.9f, 0.8f };
+		light->intensity = 5.0f;
+		light->radius = 5.0f;
+	}
+
 	virtual void Update(float deltaTime) override {
 		Engine* engine = GetOwner()->GetEngine();
 		GameObject& camera = *GetOwner();
@@ -75,11 +83,6 @@ public:
 		if (engine->GetKey(GLFW_KEY_RIGHT)) {
 			camera.rotation.y += 0.05f;
 		}
-
-		//	ライトの位置を設定
-		auto pointLight = engine->GetPointLight();
-		pointLight.position = camera.position;
-		engine->SetPointLight(pointLight);
 	}
 
 	//	衝突時の処理

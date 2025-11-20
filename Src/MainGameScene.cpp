@@ -14,6 +14,8 @@
 #include "RemoteDoor.h"
 #include "FluorescentLight.h"
 #include "MistGenerator.h"
+#include "Engine/EasyAudio/EasyAudio.h"
+#include "AudioSettings.h"
 
 #include <fstream>
 #include <string>
@@ -297,6 +299,8 @@ bool MainGameScene::Initialize(Engine& engine) {
 	ghost->rotation.y = 90.0f * Deg2Rad;
 	ghost->staticMesh = engine.GetStaticMesh("Res/MeshData/ghost/ghost.obj");
 
+	EasyAudio::Play(AudioPlayer::bgm, BGM::mainGame, 1.0f, true);
+
 	return true;	//	初期化成功
 }
 
@@ -312,6 +316,7 @@ void MainGameScene::Update(Engine& engine, float deltaTime) {
  */
 void MainGameScene::Finalize(Engine& engine) {
 	engine.ClearGameObjects();
+	EasyAudio::Stop(AudioPlayer::bgm);
 }
 
 /*
@@ -350,10 +355,15 @@ void MainGameScene::StatePlaying(Engine& engine, float deltaTime) {
 			[](UIButton* button) {
 				Engine* engine = button->GetOwner()->GetEngine();
 				engine->SetNextScene<TitleScene>();
+				EasyAudio::PlayOneShot(SE::buttonClick);
 			}
 		);
 		//	状態をゲームオーバーに変更
 		state = &MainGameScene::StateGameOver;
+
+		EasyAudio::Stop(AudioPlayer::bgm);
+		EasyAudio::PlayOneShot(SE::gameOverEvent);
+
 	}
 
 	//	左クリックでレイを飛ばす
@@ -376,6 +386,7 @@ void MainGameScene::StatePlaying(Engine& engine, float deltaTime) {
 			//	光線がドアに衝突していたらドアをどかす
 			if (owner->name == "door") {
 				owner->position.y = -2;		//	ドアを床下に移動
+				EasyAudio::PlayOneShot(SE::doorOpen);
 			}
 
 			//	MapObjectコンポーネントを持っているかどうか

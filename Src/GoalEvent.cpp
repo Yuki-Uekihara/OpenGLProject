@@ -7,6 +7,8 @@
 #include "Engine/UILayout.h"
 #include "Engine/UIButton.h"
 #include "TitleScene.h"
+#include "Engine/EasyAudio/EasyAudio.h"
+#include "AudioSettings.h"
 
  /*
   *	タイトル画面の更新処理
@@ -50,6 +52,7 @@ void GoalEvent::OnCollision(const ComponentPtr& self, const ComponentPtr& other)
 		[this](UIButton* button) {
 			button->interactable = false;
 			fadeTimer = 1.0f;
+			EasyAudio::PlayOneShot(SE::buttonClick);
 		}
 	);
 
@@ -61,4 +64,6 @@ void GoalEvent::OnCollision(const ComponentPtr& self, const ComponentPtr& other)
 	fadeObject->scale = { fbSize.x / fbSize.y, 1.0f, 1.0f };
 	//	カラーを変更
 	std::fill_n(fadeObject->color, 4, 0.0f);
+
+	EasyAudio::PlayOneShot(SE::goalEvent);
 }

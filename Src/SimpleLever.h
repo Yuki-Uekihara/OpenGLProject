@@ -7,6 +7,9 @@
 
 #include "MapObject.h"
 #include "Engine/Engine.h"
+#include "Engine/EasyAudio/EasyAudio.h"
+#include "AudioSettings.h"
+
 
 /*
  *	他のオブジェクトを操作するレバー
@@ -68,6 +71,8 @@ public:
 		endRotX = 60.0f * Deg2Rad;
 		currentTime = 0;
 		endTime = 1.0f;
+
+		EasyAudio::PlayOneShot(SE::leverMove);
 
 		return ActionResult::executeRemoteAction;
 	}

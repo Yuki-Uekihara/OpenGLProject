@@ -15,6 +15,17 @@
 #include "Scene.h"
 #include "Mesh.h"
 
+//	シェーダで使うライトの数
+constexpr size_t maxShaderLightCount = 16;
+
+//	シェーダのライト配列のロケーション番号
+constexpr GLint locColor = 100;
+constexpr GLint locLightCount = 110;
+constexpr GLint locLightColor = 111;
+constexpr GLint locLightPositionAndRadius = 
+	locLightColor + maxShaderLightCount;
+constexpr GLint locLightDirectionAndConeAngle = 
+	locLightColor + maxShaderLightCount * 2;
 
 //	点光源
 struct PointLight {
@@ -22,6 +33,7 @@ struct PointLight {
 	float intensity;	//	明るさ
 	Vector3 position;	//	位置
 	float radius;		//	ライトが届く最大半径
+	bool used = false;	//	使用中かどうか
 };
 
 
@@ -71,13 +83,12 @@ private:
 	};
 	MouseButton mouseButtons[3];	//	左、右、中
 
+	std::vector<PointLight> lights;		//	ライトデータの配列
+	std::vector<int> usedLight;			//	使用中のライトのインデックス配列	
+	std::vector<int> freeLight;			//	未使用のライトのインデックス配列
 
-	PointLight pointLight = {		//	点光源
-		{ 1.0f, 0.9f, 0.8f },
-		30,
-		{ 3.0f, 1.0f, 3.0f },
-		5
-	};
+	//	一度に増やすライトの数
+	static constexpr size_t lightResizeCount = 100;
 
 	GameObject camera;
 
@@ -113,6 +124,12 @@ private:
 	void HandleGameObjectCollision();
 	void HandleWorldColliderCollision(WorldColliderList* a, WorldColliderList* b);
 	void RemoveGameObject();
+
+	/*
+	 *	カメラに近いライトを選択してGPUのメモリにコピーする
+	 */
+	void UpdateShaderLight();
+
 public:
 	/*
 	 *	ゲームオブジェクトを生成する
@@ -201,6 +218,23 @@ public:
 	 */
 	bool Raycast(const Ray& ray, RaycastHit& hitInfo, const RaycastPredicate& pred) const;
 
+	/*
+	 *	ライト配列を初期化する
+	 */
+	void InitializeLight();
+
+	/*
+	 *	新しいライトの取得
+	 *	@return	ライトのインデックス
+	 */
+	int AllocateLight();
+
+	/*
+	 *	ライトの解放
+	 *	@param	ライトのインデックス
+	 */
+	void DeallocateLight(int index);
+
 public:
 	//	カメラを取得する
 	inline GameObject& GetMainCamera() { return camera; }
@@ -271,12 +305,6 @@ public:
 		return meshBuffer->GetStaticMesh(name);
 	}
 
-	//	ポイントライトの取得
-	inline const PointLight& GetPointLight() const { return pointLight; }
-
-	//	ポイントライトの設定
-	inline void SetPointLight(const PointLight& p) { pointLight = p; }
-
 	//	マウスボタンのクリック状態を取得する
 	inline bool GetMouseClick(int button) const {
 		//	範囲外のボタンは処理しない
@@ -286,7 +314,21 @@ public:
 		return mouseButtons[button].click;
 	}
 
+	/*
+	 *	インデックスに対応するライトデータの取得
+	 *	@param	ライトのインデックス
+	 */
+	inline PointLight* GetLight(int index) {
+		if (index >= 0 && index < lights.size() && lights[index].used)
+			return &lights[index];
+
+		return nullptr;
+	}
+
+	inline const PointLight* GetLight(int index) const {
+		return const_cast<Engine*>(this)->GetLight(index);
+	}
+
 };
 
 #endif // !_ENGINE_H_
-

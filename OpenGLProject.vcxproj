@@ -141,6 +141,7 @@
     <ClCompile Include="Src\Engine\EasyAudio\EasyAudio.cpp" />
     <ClCompile Include="Src\Engine\Engine.cpp" />
     <ClCompile Include="Src\Engine\GameObject.cpp" />
+    <ClCompile Include="Src\Engine\Light.cpp" />
     <ClCompile Include="Src\Engine\Mesh.cpp" />
     <ClCompile Include="Src\Engine\Random.cpp" />
     <ClCompile Include="Src\Engine\Texture.cpp" />
@@ -164,6 +165,7 @@
     <ClInclude Include="Src\Engine\EasyAudio\EasyAudio.h" />
     <ClInclude Include="Src\Engine\Engine.h" />
     <ClInclude Include="Src\Engine\GameObject.h" />
+    <ClInclude Include="Src\Engine\Light.h" />
     <ClInclude Include="Src\Engine\Mesh.h" />
     <ClInclude Include="Src\Engine\Random.h" />
     <ClInclude Include="Src\Engine\Scene.h" />

@@ -9,11 +9,19 @@
 #include "Engine/Engine.h"
 #include "Engine/EasyAudio/EasyAudio.h"
 #include "AudioSettings.h"
+#include "Engine/Light.h"
 
  /*
   *  タイトル画面の初期化処理
   */
 bool TitleScene::Initialize(Engine& engine) {
+	//	ライトを配置
+	auto lightObj = engine.Create<GameObject>("light", engine.GetMainCamera().position);
+	auto lightComp = lightObj->AddComponent<Light>();
+	lightComp->color = { 1.0f, 0.9f, 0.8f };
+	lightComp->intensity = 10.0f;
+	lightComp->radius = 5.0f;
+
 	engine.CreateUIObject<UILayout>("Res/title_bg.tga", Vector2::zero, 1.4f);
 	engine.CreateUIObject<UILayout>("Res/title_logo.tga", Vector2(0.0f, 0.6f), 0.3f);
 	auto startButton = engine.CreateUIObject<UIButton>("Res/start_button.tga", Vector2(0.0f, -0.3f), 0.1f);

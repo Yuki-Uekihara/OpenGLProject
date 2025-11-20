@@ -8,6 +8,7 @@
 #include "Engine/Component.h"
 #include "Engine/Engine.h"
 #include "Engine/Billboard.h"
+#include "Engine/Light.h"
 
 /*
  *	蛍光灯コンポーネント
@@ -32,6 +33,11 @@ public:
 		glare->meshId = MeshId_plane_xy;
 		glare->texColor = std::make_shared<Texture>("Res/glare.tga");
 		glare->AddComponent<Billboard>();
+
+		auto light = owner->AddComponent<Light>();
+		light->color = { 0.9f, 1.0f, 0.9f };
+		light->intensity = 7.0f;
+		light->radius = 4.0f;
 	}
 };
 
