@@ -21,18 +21,23 @@ constexpr size_t maxShaderLightCount = 16;
 //	シェーダのライト配列のロケーション番号
 constexpr GLint locColor = 100;
 constexpr GLint locLightCount = 110;
-constexpr GLint locLightColor = 111;
+constexpr GLint locLightColorAndFallOffAngle = 111;
 constexpr GLint locLightPositionAndRadius = 
-	locLightColor + maxShaderLightCount;
+	locLightColorAndFallOffAngle + maxShaderLightCount;
 constexpr GLint locLightDirectionAndConeAngle = 
-	locLightColor + maxShaderLightCount * 2;
+	locLightColorAndFallOffAngle + maxShaderLightCount * 2;
 
-//	点光源
-struct PointLight {
+//	ライトデータ
+struct LightData {
 	Vector3 color;		//	色
 	float intensity;	//	明るさ
 	Vector3 position;	//	位置
 	float radius;		//	ライトが届く最大半径
+
+	Vector3 direction;	//	向き
+	float coneAngle;	//	照らす角度
+	float falloffAngle;	//	減衰開始角度
+
 	bool used = false;	//	使用中かどうか
 };
 
@@ -83,7 +88,7 @@ private:
 	};
 	MouseButton mouseButtons[3];	//	左、右、中
 
-	std::vector<PointLight> lights;		//	ライトデータの配列
+	std::vector<LightData> lights;		//	ライトデータの配列
 	std::vector<int> usedLight;			//	使用中のライトのインデックス配列	
 	std::vector<int> freeLight;			//	未使用のライトのインデックス配列
 
@@ -318,14 +323,14 @@ public:
 	 *	インデックスに対応するライトデータの取得
 	 *	@param	ライトのインデックス
 	 */
-	inline PointLight* GetLight(int index) {
+	inline LightData* GetLight(int index) {
 		if (index >= 0 && index < lights.size() && lights[index].used)
 			return &lights[index];
 
 		return nullptr;
 	}
 
-	inline const PointLight* GetLight(int index) const {
+	inline const LightData* GetLight(int index) const {
 		return const_cast<Engine*>(this)->GetLight(index);
 	}
 

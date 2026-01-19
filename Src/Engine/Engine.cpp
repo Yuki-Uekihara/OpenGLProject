@@ -584,7 +584,7 @@ void Engine::RemoveGameObject() {
 void Engine::UpdateShaderLight() {
 	//	コピーするライトがなければライト数を０に設定する
 	if (usedLight.empty()) {
-		glProgramUniform1i(prog, locLightColor, 0);
+		glProgramUniform1i(prog, locLightColorAndFallOffAngle, 0);
 		return;
 	}
 
@@ -608,7 +608,7 @@ void Engine::UpdateShaderLight() {
 	//	カメラからライトまでの距離を計算する
 	struct Distance {
 		float distance;			//	カメラからライトの半径までの距離
-		const PointLight* p;	//	ライトのアドレス
+		const LightData* p;	//	ライトのアドレス
 	};
 	std::vector<Distance> distanceList;
 	distanceList.reserve(lights.size());
@@ -629,7 +629,7 @@ void Engine::UpdateShaderLight() {
 
 	//	画面に影響するライトがなければライト数を０に設定する
 	if (distanceList.empty()) {
-		glProgramUniform1i(prog, locLightColor, 0);
+		glProgramUniform1i(prog, locLightColorAndFallOffAngle, 0);
 		return;
 	}
 
@@ -643,18 +643,20 @@ void Engine::UpdateShaderLight() {
 	const int lightCount = static_cast<int>(
 		std::min(distanceList.size(), maxShaderLightCount)
 		);
-	std::vector<Vector3> color(lightCount);
+	std::vector<Vector4> colorAndFalloffAngle(lightCount);
 	std::vector<Vector4> positionAndRadius(lightCount);
-	for (int i = 0; i < lightCount; i++) {
-		const PointLight* p = distanceList[i].p;
-		color[i] = p->color * p->intensity;
-		positionAndRadius[i] = {
-			p->position.x, p->position.y, p->position.z,
-			p->radius
-		};
+	std::vector<Vector4> directionAndConeAngle(lightCount);
 
-		glProgramUniform3fv(prog, locLightColor, lightCount, &color[0].x);
+	for (int i = 0; i < lightCount; i++) {
+		const LightData* p = distanceList[i].p;
+		const Vector3 color = p->color * p->intensity;
+		colorAndFalloffAngle[i] = { color.x, color.y, color.z, p->falloffAngle };
+		positionAndRadius[i] = { p->position.x, p->position.y, p->position.z, p->radius };
+		directionAndConeAngle[i] = { p->direction.x, p->direction.y, p->direction.z, p->coneAngle };
+
+		glProgramUniform4fv(prog, locLightColorAndFallOffAngle, lightCount, &colorAndFalloffAngle[0].x);
 		glProgramUniform4fv(prog, locLightPositionAndRadius, lightCount, &positionAndRadius[0].x);
+		glProgramUniform4fv(prog, locLightDirectionAndConeAngle, lightCount, &directionAndConeAngle[0].x);
 		glProgramUniform1i(prog, locLightCount, lightCount);
 	}
 }

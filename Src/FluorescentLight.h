@@ -36,8 +36,9 @@ public:
 
 		auto light = owner->AddComponent<Light>();
 		light->color = { 0.9f, 1.0f, 0.9f };
-		light->intensity = 7.0f;
+		light->intensity = 20.0f;
 		light->radius = 4.0f;
+		light->type = Light::Type::SpotLight;
 	}
 };
 
