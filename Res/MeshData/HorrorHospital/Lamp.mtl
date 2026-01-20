@@ -9,5 +9,6 @@ Ni 1.450000
 d 1.000000
 illum 2
 map_Kd T_Lamp.tga
-map_Ke C:/T_Lamp_E.png
+map_Ke T_Lamp_E.tga
+Ke 1.0000 0.250000 0.10000
 map_Bump -bm 1.000000 C:/T_Lamp_N.png

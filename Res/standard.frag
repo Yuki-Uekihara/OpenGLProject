@@ -13,7 +13,10 @@ out vec4 outColor;	//	色
 
 //	プログラムからの入力
 layout (binding = 0) uniform sampler2D texColor;
+layout (binding = 1) uniform sampler2D texEmission;
+
 layout (location = 100) uniform vec4 color;		//	色
+layout (location = 101) uniform vec4 emission;	//	発光色
 
 //	ライト
 struct Light {
@@ -84,6 +87,14 @@ void main() {
 
 	//	拡散光の影響を反映
 	outColor.rgb *= diffuse;
+
+	//	発光色の反映
+	if(emission.w > 0) {
+		outColor.rgb += texture(texEmission, inTexcoord).rgb * emission.rgb;
+	}
+	else {
+		outColor.rgb += emission.rgb;
+	}
 
 	//	ガンマ補正を戻す
 	outColor.rgb = pow(outColor.rgb, vec3(1 / crtGamma));

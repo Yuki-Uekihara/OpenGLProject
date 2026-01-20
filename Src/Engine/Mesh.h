@@ -42,7 +42,9 @@ struct Vertex {
 struct Material {
 	std::string name = "<Default>";		//	マテリアル名
 	Vector4 baseColor = Vector4::one;	//	基本色 + α値
+	Vector3 emission = Vector3::zero;	//	発光色
 	TexturePtr texBaseColor;			//	基本色テクスチャ
+	TexturePtr texEmission;				//	発光色テクスチャ
 };
 //	別名定義
 using MaterialPtr = std::shared_ptr<Material>;

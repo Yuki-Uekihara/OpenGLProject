@@ -34,9 +34,13 @@ public:
 		glare->texColor = std::make_shared<Texture>("Res/glare.tga");
 		glare->AddComponent<Billboard>();
 
-		auto light = owner->AddComponent<Light>();
+		//	光源オブジェクト
+		auto lightObject = engine->Create<GameObject>("light", owner->position, owner->rotation);
+		lightObject->rotation.x = -90.0f * Deg2Rad;
+
+		auto light = lightObject->AddComponent<Light>();
 		light->color = { 0.9f, 1.0f, 0.9f };
-		light->intensity = 20.0f;
+		light->intensity = 7.0f;
 		light->radius = 4.0f;
 		light->type = Light::Type::SpotLight;
 	}

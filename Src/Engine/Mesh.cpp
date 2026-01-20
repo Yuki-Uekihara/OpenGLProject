@@ -97,6 +97,24 @@ std::vector<MaterialPtr> LoadMTL(const std::string& foldername, const char* file
 			}
 			continue;
 		}
+
+		//	発光色の読み取りを試みる
+		if (sscanf_s(line.data(), " Ke %f %f %f",
+			&pMat->emission.x, &pMat->emission.y, &pMat->emission.z) == 3){
+			continue;
+		}
+
+		//	発光色テクスチャの読み取りを試みる
+		if (sscanf_s(line.data(), " map_Ke %999s", &texName, 999) == 1) {
+			const std::string filename = foldername + texName;
+			if (std::filesystem::exists(filename)) {
+				pMat->texEmission = std::make_shared<Texture>(filename.c_str());
+			}
+			else {
+				//	ファイルが開けない
+			}
+			continue;
+		}
 	}
 
 	//	読み込んだマテリアルを返す
@@ -418,11 +436,24 @@ void Draw(const StaticMesh& mesh, GLuint prog) {
 				//	objectColor.w* mat.baseColor.w
 				//};
 				glProgramUniform4fv(prog, 100, 1, &color.x);
+				glProgramUniform4f(prog, 101,
+					mat.emission.x, mat.emission.y, mat.emission.z,
+					static_cast<bool>(mat.texEmission)
+				);
+
 			}
 
 			if (mat.texBaseColor) {
 				const GLuint tex = *mat.texBaseColor;
 				glBindTextures(0, 1, &tex);
+			}
+
+			if (mat.texEmission) {
+				const GLuint tex = *mat.texEmission;
+				glBindTextures(1, 1, &tex);
+			}
+			else {
+				glBindTextures(1, 1, nullptr);
 			}
 		}
 
