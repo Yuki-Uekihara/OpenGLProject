@@ -134,6 +134,8 @@
     <None Include="packages.config" />
     <None Include="Res\standard.frag" />
     <None Include="Res\standard.vert" />
+    <None Include="Res\unlit.frag" />
+    <None Include="Res\unlit.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\EnemySkull.cpp" />

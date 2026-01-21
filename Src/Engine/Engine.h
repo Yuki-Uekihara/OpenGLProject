@@ -69,6 +69,11 @@ private:
 	GLuint fs = 0;
 	GLuint prog = 0;
 
+	//	アンリットシェーダ用
+	GLuint vsUnlit = 0;
+	GLuint fsUnlit = 0;
+	GLuint progUnlit = 0;
+
 	MeshBufferPtr meshBuffer;		//	図形データ管理オブジェクト
 	GameObjectList gameObjects;		//	ゲームオブジェクトの一元管理
 	float previousTime = 0;			//	前回の更新時
@@ -124,7 +129,7 @@ private:
 	void Update();
 	void Render();
 
-	void DrawGameObject(GameObjectList::iterator begin, GameObjectList::iterator end);
+	void DrawGameObject(GLuint prog, GameObjectList::iterator begin, GameObjectList::iterator end);
 	void UpdateGameObject(float deltaTime);
 	void HandleGameObjectCollision();
 	void HandleWorldColliderCollision(WorldColliderList* a, WorldColliderList* b);

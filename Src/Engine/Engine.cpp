@@ -136,6 +136,18 @@ int Engine::Initialize() {
 	glAttachShader(prog, fs);
 	glLinkProgram(prog);
 
+	//	シェーダーを読み込んでコンパイル
+	vsUnlit = CompileShader(GL_VERTEX_SHADER, "Res/unlit.vert");
+	fsUnlit = CompileShader(GL_FRAGMENT_SHADER, "Res/unlit.frag");
+
+	//	シェーダーをリンク
+	progUnlit = glCreateProgram();
+	glAttachShader(progUnlit, vsUnlit);
+	glAttachShader(progUnlit, fsUnlit);
+	glLinkProgram(progUnlit);
+
+
+
 
 	//	頂点データ
 	const Vertex vertexData[] = {
@@ -289,7 +301,7 @@ void Engine::Update() {
 
 	}
 
-	
+
 
 	//	シーンの切り替え
 	if (nextScene) {
@@ -327,16 +339,18 @@ void Engine::Render() {
 	//	ビューポートの設定
 	glViewport(0, 0, fbWidth, fbHeight);
 
-	//	アスペクト比を計算
-	const float aspectRatio =
-		static_cast<float>(fbWidth) / static_cast<float>(fbHeight);
-	//	ユニフォーム変数にデータをコピー
-	//const float timer = static_cast<float>(glfwGetTime());
-	//glProgramUniform1f(prog, 0, timer);
-	glProgramUniform2f(prog, 3, fovScale / aspectRatio, fovScale);
-	glProgramUniform3fv(prog, 4, 1, &camera.position.x);
-	glProgramUniform2f(prog, 5, sinf(-camera.rotation.y), cosf(-camera.rotation.y));
-
+	const GLuint programs[] = { prog, progUnlit };
+	for (auto prog : programs) {
+		//	アスペクト比を計算
+		const float aspectRatio =
+			static_cast<float>(fbWidth) / static_cast<float>(fbHeight);
+		//	ユニフォーム変数にデータをコピー
+		//const float timer = static_cast<float>(glfwGetTime());
+		//glProgramUniform1f(prog, 0, timer);
+		glProgramUniform2f(prog, 3, fovScale / aspectRatio, fovScale);
+		glProgramUniform3fv(prog, 4, 1, &camera.position.x);
+		glProgramUniform2f(prog, 5, sinf(-camera.rotation.y), cosf(-camera.rotation.y));
+	}
 	//	深度テストの有効化
 	glEnable(GL_DEPTH_TEST);
 
@@ -371,17 +385,18 @@ void Engine::Render() {
 	);
 
 	//	transparent以前の描画
-	DrawGameObject(gameObjects.begin(), transparentBegin);
+	DrawGameObject(prog, gameObjects.begin(), transparentBegin);
 
 	//	transparentからoverlayまでのキューの描画
 	glDepthMask(GL_FALSE);		//	深度バッファの書き込みを禁止
-	DrawGameObject(transparentBegin, overlayBegin);
+	DrawGameObject(prog, transparentBegin, overlayBegin);
 	glDepthMask(GL_TRUE);		//	深度バッファの書き込みを許可
 
 
 	//	overlay以降の描画
 	glDisable(GL_DEPTH_TEST);
-	DrawGameObject(overlayBegin, gameObjects.end());
+	glUseProgram(progUnlit);
+	DrawGameObject(progUnlit, overlayBegin, gameObjects.end());
 
 
 
@@ -392,7 +407,7 @@ void Engine::Render() {
 /*
  *	ゲームオブジェクト配列を描画する
  */
-void Engine::DrawGameObject(GameObjectList::iterator begin, GameObjectList::iterator end) {
+void Engine::DrawGameObject(GLuint prog, GameObjectList::iterator begin, GameObjectList::iterator end) {
 	//	メッシュバッファからVAOをバインド
 	glBindVertexArray(*meshBuffer->GetVAO());
 
