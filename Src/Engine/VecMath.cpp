@@ -27,11 +27,11 @@ Vector3 Vector3::back = { 0.0f, 0.0f, -1.0f };
 Vector4 Vector4::zero = { 0.0f, 0.0f, 0.0f, 0.0f };
 Vector4 Vector4::one = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-explicit constexpr Vector2::Vector2(const Vector3& v)
+constexpr Vector2::Vector2(const Vector3& v)
 	: x(v.x), y(v.y) {
 }
 
-explicit constexpr Vector2::Vector2(const Vector4& v)
+constexpr Vector2::Vector2(const Vector4& v)
 	: x(v.x), y(v.y) {
 }
 
@@ -43,7 +43,7 @@ float& Vector2::operator [] (size_t i) {
 	return *(&x + i);
 }
 
-explicit constexpr Vector3::Vector3(const Vector4& v)
+constexpr Vector3::Vector3(const Vector4& v)
 	: x(v.x), y(v.y), z(v.z) {
 
 }
