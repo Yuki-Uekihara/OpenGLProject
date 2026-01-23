@@ -63,7 +63,7 @@ void GoalEvent::OnCollision(const ComponentPtr& self, const ComponentPtr& other)
 	const Vector2 fbSize = engine->GetFramebufferSize();
 	fadeObject->scale = { fbSize.x / fbSize.y, 1.0f, 1.0f };
 	//	ƒJƒ‰[‚ð•ÏX
-	std::fill_n(fadeObject->color, 4, 0.0f);
+	std::fill_n(&fadeObject->color.x, 4, 0.0f);
 
 	EasyAudio::PlayOneShot(SE::goalEvent);
 }

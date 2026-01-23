@@ -418,7 +418,7 @@ void Engine::DrawGameObject(GLuint prog, GameObjectList::iterator begin, GameObj
 		if (!obj->staticMesh && (obj->meshId < 0 || obj->meshId >= meshBuffer->GetDrawParamSize()))
 			continue;
 
-		glProgramUniform4fv(prog, 100, 1, obj->color);
+		glProgramUniform4fv(prog, 100, 1, &obj->color.x);
 		glProgramUniform3fv(prog, 0, 1, &obj->scale.x);
 		glProgramUniform3fv(prog, 1, 1, &obj->position.x);
 		glProgramUniform4f(prog, 2,
@@ -434,7 +434,12 @@ void Engine::DrawGameObject(GLuint prog, GameObjectList::iterator begin, GameObj
 
 		//	}Œ`‚ð•`‰æ
 		if (obj->staticMesh) {
-			Draw(*obj->staticMesh, prog);
+			if (obj->materials.empty()) {
+				Draw(*obj->staticMesh, prog, obj->staticMesh->materials);
+			}
+			else {
+				Draw(*obj->staticMesh, prog, obj->materials);
+			}
 		}
 		else {
 			const DrawParam& param = meshBuffer->GetDrawParam(obj->meshId);

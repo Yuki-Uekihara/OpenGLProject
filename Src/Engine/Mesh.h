@@ -48,6 +48,7 @@ struct Material {
 };
 //	別名定義
 using MaterialPtr = std::shared_ptr<Material>;
+using MaterialList = std::vector<MaterialPtr>;
 
 /*
  *	3Dモデル
@@ -55,14 +56,21 @@ using MaterialPtr = std::shared_ptr<Material>;
 struct StaticMesh {
 	std::string name;		//	メッシュ名
 	std::vector<DrawParam> drawParamList;	//	描画パラメータ
-	std::vector<MaterialPtr> materials;		//	マテリアル配列
+	MaterialList materials;		//	マテリアル配列
 };
 //	別名定義
 using StaticMeshPtr = std::shared_ptr<StaticMesh>;
 
-void Draw(const StaticMesh& mesh, GLuint prog = 0);
+void Draw(const StaticMesh& mesh, GLuint prog, const MaterialList& materials);
 
-
+//	共有マテリアル配列を複製する
+inline MaterialList CloneMaterialList(const StaticMeshPtr& original) {
+	MaterialList clone(original->materials.size());
+	for (int i = 0; i < clone.size(); i++) {
+		clone[i] = std::make_shared<Material>(*original->materials[i]);
+	}
+	return clone;
+}
 
 /*
  *	頂点データを管理するクラス

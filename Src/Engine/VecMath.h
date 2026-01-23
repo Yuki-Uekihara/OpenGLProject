@@ -8,6 +8,13 @@
 #define Deg2Rad (Pi / 180.0f)
 #define Rad2Deg (180.0f / Pi)
 
+//	‘O•ûéŒ¾
+struct Vector2;
+struct Vector3;
+struct Vector4;
+
+
+
 struct Vector2 {
 	//	ƒƒ“ƒo•Ï”
 	float x, y;
@@ -23,6 +30,11 @@ struct Vector2 {
 	Vector2(float x, float y)
 		: x(x), y(y) {
 	}
+	explicit constexpr Vector2(const Vector3& v);
+	explicit constexpr Vector2(const Vector4& v);
+
+	float operator [] (size_t i) const;
+	float& operator [] (size_t i);
 };
 
 struct Vector3 {
@@ -40,6 +52,7 @@ struct Vector3 {
 	constexpr Vector3(float x, float y, float z)
 		: x(x), y(y), z(z) {
 	}
+	explicit constexpr Vector3(const Vector4& v);
 
 	//	‰‰Zq
 	Vector3 operator - ();
@@ -56,6 +69,9 @@ struct Vector3 {
 
 	bool operator == (const Vector3& v) const;
 	bool operator != (const Vector3& v) const;
+
+	float operator [] (size_t i) const;
+	float& operator [] (size_t i);
 
 	//	‰‰Z
 	static Vector3 Scale(const Vector3& v1, const Vector3& v2);
@@ -92,10 +108,13 @@ struct Vector4 {
 	Vector4 operator - (const Vector4& v) const;
 	Vector4 operator - (const Vector3& v) const;
 
-	Vector4& operator +=(const Vector4& v);
-	Vector4& operator +=(const Vector3& v);
-	Vector4& operator -=(const Vector4& v);
-	Vector4& operator -=(const Vector3& v);
+	Vector4& operator += (const Vector4& v);
+	Vector4& operator += (const Vector3& v);
+	Vector4& operator -= (const Vector4& v);
+	Vector4& operator -= (const Vector3& v);
+
+	float operator [] (size_t i) const;
+	float& operator [] (size_t i);
 
 	//	‰‰Z
 	static Vector4 Scale(const Vector4& v1, const Vector4& v2);

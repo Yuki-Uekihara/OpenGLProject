@@ -301,6 +301,17 @@ bool MainGameScene::Initialize(Engine& engine) {
 
 	EasyAudio::Play(AudioPlayer::bgm, BGM::mainGame, 1.0f, true);
 
+	//	固有マテリアルの動作テスト用
+	auto ghost2 = engine.Create<GameObject>("ghost");
+	ghost2->position = startPoint + Vector3(-2, 0, 2);
+	ghost2->rotation.y = 90.0f * Deg2Rad;
+	ghost2->staticMesh = engine.GetStaticMesh("Res/MeshData/ghost/ghost.obj");
+
+	//	共有マテリアルを複製し固有マテリアルを作る
+	ghost2->materials = CloneMaterialList(ghost2->staticMesh);
+	//ghost2->materials[0]->baseColor = { 0.1f, 1.0f, 0.1f, 1.0f };
+	ghost2->materials[0]->texBaseColor = std::make_shared<Texture>("Res/MeshData/ghost/ghost_green.tga");
+
 	return true;	//	初期化成功
 }
 

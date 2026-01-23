@@ -100,7 +100,7 @@ std::vector<MaterialPtr> LoadMTL(const std::string& foldername, const char* file
 
 		//	発光色の読み取りを試みる
 		if (sscanf_s(line.data(), " Ke %f %f %f",
-			&pMat->emission.x, &pMat->emission.y, &pMat->emission.z) == 3){
+			&pMat->emission.x, &pMat->emission.y, &pMat->emission.z) == 3) {
 			continue;
 		}
 
@@ -260,27 +260,51 @@ StaticMeshPtr MeshBuffer::LoadOBJ(const char* filename) {
 	//	使用するマテリアルの末尾に番兵を追加
 	usemtls.push_back({ "", faceIndexSet.size() });
 
+	//	OBJファイルの f構文と OpenGLの頂点インデックス配列の対応表
+	std::unordered_map<uint64_t, uint16_t> indexMap;
+	indexMap.reserve(10'000);
+
 	//	読み込んだデータをOpenGLで使えるデータに変換する
 	std::vector<Vertex> vertices;
 	vertices.reserve(faceIndexSet.size());
-	for (const auto& face : faceIndexSet) {
-		Vertex v;
-		v.position = positions[face.v - 1];
-		v.texCoord = texcoords[face.vt - 1];
-		//	法線が設定されていない場合は0を設定
-		if (face.vn == 0) {
-			v.normal = Vector3::zero;
+	std::vector<uint16_t> indices;
+	indices.reserve(faceIndexSet.size());
+
+	for (int i = 0; i < faceIndexSet.size(); i++) {
+		const IndexSet& face = faceIndexSet[i];
+
+		//	f構文の値を64ビットの「キー」に変換
+		const uint64_t key = static_cast<uint64_t>(face.v) +
+			(static_cast<uint64_t>(face.vt) << 20) + (static_cast<uint64_t>(face.vn) << 40);
+
+		//	対応表からキーに一致するデータを検索
+		const auto itr = indexMap.find(key);
+		if (itr != indexMap.end()) {
+			//	対応表にある既存の頂点インデックスを使用する
+			indices.push_back(itr->second);
 		}
 		else {
-			v.normal = normals[face.vn - 1];
+			//	対応表にないので新しい頂点データを作成し、頂点配列に追加する
+			Vertex v;
+			v.position = positions[face.v - 1];
+			v.texCoord = texcoords[face.vt - 1];
+			//	法線が設定されていない場合は0を設定
+			if (face.vn == 0) {
+				v.normal = Vector3::zero;
+			}
+			else {
+				v.normal = normals[face.vn - 1];
+			}
+
+			vertices.push_back(v);
+
+			//	新しい頂点データのインデックスを、頂点インデックス配列に追加する
+			const uint16_t index = static_cast<uint16_t>(vertices.size() - 1);
+			indices.push_back(index);
+
+			//	キーと頂点インデックスのペアを対応表に追加する
+			indexMap.emplace(key, index);
 		}
-
-		vertices.push_back(v);
-	}
-
-	std::vector<uint16_t> indices(faceIndexSet.size());
-	for (int i = 0; i < indices.size(); i++) {
-		indices[i] = i;
 	}
 
 	//	設定されていない法線を補う
@@ -415,7 +439,7 @@ StaticMeshPtr MeshBuffer::GetStaticMesh(const char* name) const {
 /*
  *	メッシュを描画する
  */
-void Draw(const StaticMesh& mesh, GLuint prog) {
+void Draw(const StaticMesh& mesh, GLuint prog, const MaterialList& materials) {
 	//	カラーパラメータを取得
 	Vector4 objectColor;
 	if (prog) {
@@ -424,8 +448,8 @@ void Draw(const StaticMesh& mesh, GLuint prog) {
 
 	for (const auto& drawParam : mesh.drawParamList) {
 		//	マテリアルを設定
-		if (drawParam.materialNo >= 0 && drawParam.materialNo < mesh.materials.size()) {
-			const Material& mat = *mesh.materials[drawParam.materialNo];
+		if (drawParam.materialNo >= 0 && drawParam.materialNo < materials.size()) {
+			const Material& mat = *materials[drawParam.materialNo];
 
 			if (prog) {
 				const Vector4 color = Vector4::Scale(objectColor, mat.baseColor);

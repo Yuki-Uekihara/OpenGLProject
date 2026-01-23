@@ -18,6 +18,7 @@
 
 //	前方宣言
 class Engine;
+struct Material;
 
 /*
  *	描画の順番
@@ -45,8 +46,9 @@ public:
 	Vector3 position = { 0.0f, 0.0f, 0.0f };		//	平行移動
 	Vector3 rotation = { 0.0f, 0.0f, 0.0f };		//	回転角度
 	Vector3 scale = { 1.0f, 1.0f, 1.0f };			//	拡大率
-	float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };	//	色
+	Vector4 color = { 1.0f, 1.0f, 1.0f, 1.0f };		//	色
 	StaticMeshPtr staticMesh;						//	表示するスタティックメッシュ
+	MaterialList materials;							//	固有マテリアル配列
 	TexturePtr texColor;							//	カラーテクスチャ
 	int meshId = -1;								//	図形の番号
 	int renderQueue = RenderQueue_geometry;			//	描画順

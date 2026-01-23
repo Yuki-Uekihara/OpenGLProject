@@ -43,7 +43,7 @@ bool TitleScene::Initialize(Engine& engine) {
 	const Vector2 fbSize = engine.GetFramebufferSize();
 	fadeObject->scale = { fbSize.x / fbSize.y, 1.0f, 1.0f };
 	//	ƒJƒ‰[‚ğ•ÏX
-	std::fill_n(fadeObject->color, 4, 0.0f);
+	std::fill_n(&fadeObject->color.x, 4, 0.0f);
 
 	//	BGM‚ğÄ¶
 	EasyAudio::Play(AudioPlayer::bgm, BGM::title, 1.0f, true);

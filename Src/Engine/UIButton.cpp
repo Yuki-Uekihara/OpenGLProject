@@ -17,8 +17,8 @@ void UIButton::Update(float deltaTime) {
 
 	//	有効・無効チェック
 	if (!interactable) {
-		std::copy_n(&normalColor.x, 3, owner->color);
-		owner->color[3] = 0.75;		//	透明度
+		std::copy_n(&normalColor.x, 3, &owner->color.x);
+		//owner->color[3] = 0.75;		//	透明度
 		return;
 	}
 
@@ -30,11 +30,11 @@ void UIButton::Update(float deltaTime) {
 		const bool buttonDown = engine->GetMouseButton(GLFW_MOUSE_BUTTON_LEFT);
 		//	左ボタンが押されている
 		if (buttonDown) {
-			std::copy_n(&pressedColor.x, 3, owner->color);
+			std::copy_n(&pressedColor.x, 3, &owner->color.x);
 		}
 		//	左ボタンが離されている
 		else {
-			std::copy_n(&highlightColor.x, 3, owner->color);
+			std::copy_n(&highlightColor.x, 3, &owner->color.x);
 
 			//	前回のフレームで押していたら
 			if (prevButtonDown) {
@@ -50,7 +50,7 @@ void UIButton::Update(float deltaTime) {
 	}
 	else {
 		//	カーソルがボタンの領域外にある
-		std::copy_n(&normalColor.x, 3, owner->color);
+		std::copy_n(&normalColor.x, 3, &owner->color.x);
 
 		//	マウスボタンの更新
 		prevButtonDown = false;

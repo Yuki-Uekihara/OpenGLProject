@@ -27,6 +27,28 @@ Vector3 Vector3::back = { 0.0f, 0.0f, -1.0f };
 Vector4 Vector4::zero = { 0.0f, 0.0f, 0.0f, 0.0f };
 Vector4 Vector4::one = { 1.0f, 1.0f, 1.0f, 1.0f };
 
+explicit constexpr Vector2::Vector2(const Vector3& v)
+	: x(v.x), y(v.y) {
+}
+
+explicit constexpr Vector2::Vector2(const Vector4& v)
+	: x(v.x), y(v.y) {
+}
+
+float Vector2::operator [] (size_t i) const {
+	return *(&x + i);
+}
+
+float& Vector2::operator [] (size_t i) {
+	return *(&x + i);
+}
+
+explicit constexpr Vector3::Vector3(const Vector4& v)
+	: x(v.x), y(v.y), z(v.z) {
+
+}
+
+
 Vector3 Vector3::operator - () {
 	return (*this * -1);
 }
@@ -98,6 +120,14 @@ bool Vector3::operator == (const Vector3& v) const {
 
 bool Vector3::operator != (const Vector3& v) const {
 	return !(*this == v);
+}
+
+float Vector3::operator [] (size_t i) const {
+	return *(&x + i);
+}
+
+float& Vector3::operator [] (size_t i) {
+	return *(&x + i);
 }
 
 Vector3 Vector3::Scale(const Vector3& v1, const Vector3& v2) {
@@ -189,6 +219,14 @@ Vector4& Vector4::operator -= (const Vector3& v) {
 	y -= v.y;
 	z -= v.z;
 	return *this;
+}
+
+float Vector4::operator [] (size_t i) const {
+	return *(&x + i);
+}
+
+float& Vector4::operator [] (size_t i) {
+	return *(&x + i);
 }
 
 Vector4 Vector4::Scale(const Vector4& v1, const Vector4& v2) {
