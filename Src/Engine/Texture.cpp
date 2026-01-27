@@ -128,6 +128,21 @@ Texture::Texture(const char* filename) {
 		[pixelDepth = buffer[16]](const  Format& f) { return f.pixelDepth == pixelDepth; }
 	);
 
+	//	現在のアラインメントを記録
+	GLint alignment;
+	glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
+
+	//	画像のアラインメントを決定
+	//	一行のバイト数が4で割り切れるときは4, 2で割り切れるときは2, それ以外は1
+	constexpr int alignmentList[] = { 4, 1, 2, 1 };
+	const int lineByteSize = width * pixelBytes;		//	1行のバイト数
+	const int imageAlignment = alignmentList[lineByteSize % 4];
+
+	//	アラインメントを変更
+	if (alignment != imageAlignment) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, imageAlignment);
+	}
+
 	//	テクスチャを作成
 	GLuint object = 0;		//	管理番号
 	glCreateTextures(GL_TEXTURE_2D, 1, &object);
@@ -141,9 +156,13 @@ Texture::Texture(const char* filename) {
 		format->imageType,
 		buffer.data() + tgaHeaderSize
 	);
-
 	id = object;
 	name = filename;
+
+	//	アラインメントを元に戻す
+	if (alignment != imageAlignment) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
+	}
 
 	//	グレースケール（白黒）のテクスチャ用
 	if (format->imageFormat == GL_RED) {
