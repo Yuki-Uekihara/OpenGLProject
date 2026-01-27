@@ -42,18 +42,6 @@ struct LightData {
 };
 
 
-//	メッシュ番号
-//	Initialize関数にある meshes 配列と順番を合わせる
-//	配列に変更があった場合はこちらも変更する
-enum MeshId {
-	MeshId_box,
-	MeshId_crystal,
-	MeshId_wall,
-	MeshId_plane_xy,
-	MeshId_skull,
-};
-
-
 /*
  *	ゲームエンジン
  */
@@ -178,12 +166,16 @@ public:
 	) {
 		//	メッセージオブジェクトを生成
 		auto obj = Create<GameObject>(filename, { position.x, position.y, 0 });
-		obj->texColor = std::make_shared<Texture>(filename);
-		obj->meshId = MeshId_plane_xy;
 		obj->renderQueue = RenderQueue_overlay;
+		obj->staticMesh = GetStaticMesh("plane_xy");
+
+		//	固有マテリアルを生成し、テクスチャを差し替える
+		auto texBaseColor = std::make_shared<Texture>(filename);
+		obj->materials = CloneMaterialList(obj->staticMesh);
+		obj->materials[0]->texBaseColor = texBaseColor;
 
 		//	画像サイズに応じて拡大率を調整
-		const float aspectRatio = obj->texColor->GetAspectRatio();
+		const float aspectRatio = texBaseColor->GetAspectRatio();
 		obj->scale = { scale * aspectRatio, scale, 1.0f };
 
 		//	コンポーネントの追加

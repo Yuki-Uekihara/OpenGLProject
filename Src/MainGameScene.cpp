@@ -90,17 +90,16 @@ bool MainGameScene::Initialize(Engine& engine) {
 			if (tileId == '#') {
 				auto wall = engine.Create<GameObject>("wall", { posX, 0, posZ });
 				wall->scale = { squareScale, squareScale, squareScale };
-				wall->staticMesh = engine.GetStaticMesh(
-					"Res/MeshData/AlchemistHouse/BOX.obj"
-				);
+				wall->staticMesh = engine.GetStaticMesh("Res/MeshData/AlchemistHouse/BOX.obj");
 			}
 
 			//	クリスタルを生成
 			else if (tileId == 'C') {
 				auto crystal = engine.Create<GameObject>("crystal", { posX, 1, posZ });
 				crystal->scale = { 0.5f, 0.5f, 0.5f };
-				crystal->texColor = texCrystalBlue;
-				crystal->meshId = MeshId_crystal;
+				crystal->staticMesh = engine.GetStaticMesh("cystal");
+				crystal->materials = CloneMaterialList(crystal->staticMesh);
+				crystal->materials[0]->texBaseColor = std::make_shared<Texture>("Res/MeshData/crystal_blue.tga");
 			}
 
 			//	プレーヤーの初期位置を設定
@@ -284,15 +283,17 @@ bool MainGameScene::Initialize(Engine& engine) {
 	highpoly->staticMesh = engine.GetStaticMesh(
 		"Res/MeshData/skull/skull_highpoly_with_normal.obj"
 	);
-	highpoly->texColor = std::make_shared<Texture>("Res/MeshData/skull.tga");
+	highpoly->materials = CloneMaterialList(highpoly->staticMesh);
+	highpoly->materials[0]->texBaseColor = std::make_shared<Texture>("Res/MeshData/skull.tga");
 
 	//	比較用従来の表示テスト
 	auto lowpoly = engine.Create<GameObject>("skull_lowpoly");
 	lowpoly->position = startPoint;
 	lowpoly->scale = { 2.0f, 2.0f, 2.0f };
 	lowpoly->rotation.y = -90.0f * Deg2Rad;
-	lowpoly->meshId = MeshId_skull;
-	lowpoly->texColor = std::make_shared<Texture>("Res/MeshData/skull.tga");
+	lowpoly->staticMesh = engine.GetStaticMesh("skull");
+	lowpoly->materials = CloneMaterialList(lowpoly->staticMesh);
+	lowpoly->materials[0]->texBaseColor = std::make_shared<Texture>("Res/MeshData/skull.tga");
 
 	auto ghost = engine.Create<GameObject>("ghost");
 	ghost->position = startPoint + Vector3(-1, 0, 2);

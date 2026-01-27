@@ -17,7 +17,7 @@
   */
 class MistGenerator : public Component {
 private:
-	TexturePtr texMist = std::make_shared<Texture>("Res/mist.tga");
+	MaterialList mistMaterial;	//	霧マテリアル
 	float timer = 0.0f;
 
 public:
@@ -29,6 +29,14 @@ public:
 	virtual ~MistGenerator() = default;
 
 public:
+	virtual void Awake() override {
+		//	霧マテリアルを生成
+		mistMaterial = CloneMaterialList(
+			GetOwner()->GetEngine()->GetStaticMesh("plane_xy")
+		);
+		mistMaterial[0]->texBaseColor = std::make_shared<Texture>("Res/mist.tga");
+	}
+
 	virtual void Update(float deltaTime) override {
 		timer += deltaTime;
 		if (timer < interval) {
@@ -50,8 +58,9 @@ public:
 		mist->scale = Vector3(
 			Random::Range(0.2f, 0.5f), Random::Range(0.1f, 0.2f), 1.0f
 		);
-		mist->meshId = MeshId_plane_xy;
-		mist->texColor = texMist;
+		mist->staticMesh = engine->GetStaticMesh("plane_xy");
+		mist->materials = mistMaterial;
+
 		mist->renderQueue = RenderQueue_tranparent;
 		mist->AddComponent<Billboard>();
 		mist->AddComponent<Mist>();

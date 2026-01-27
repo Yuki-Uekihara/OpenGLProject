@@ -202,6 +202,8 @@ int Engine::Initialize() {
 
 	//	図形データの情報
 	struct MeshData {
+		const char* name;			//	メッシュ名
+		const char* textureFilename;//	テクスチャファイル名
 		size_t vertexSize;			//	頂点データのバイト数
 		size_t indexSize;			//	インデックスデータのバイト数
 		const void* vertexData;		//	頂点データのアドレス
@@ -209,11 +211,11 @@ int Engine::Initialize() {
 	};
 
 	const MeshData meshes[] = {
-		{ sizeof(vertexData), sizeof(indexData), vertexData, indexData },
-		{ sizeof(crystal_vertices), sizeof(crystal_indices), crystal_vertices, crystal_indices },
-		{ sizeof(wall_vertices), sizeof(wall_indices), wall_vertices, wall_indices },
-		{ sizeof(plane_xy_vertices), sizeof(plane_xy_indices), plane_xy_vertices, plane_xy_indices },
-		{ sizeof(skull_vertices), sizeof(skull_indices), skull_vertices, skull_indices },
+		{ "box", "Res/box.tga", sizeof(vertexData), sizeof(indexData), vertexData, indexData },
+		{ "crystal", "Res/MeshData/crystal_blue.tga", sizeof(crystal_vertices), sizeof(crystal_indices), crystal_vertices, crystal_indices },
+		{ "wall", "Res/wall.tga", sizeof(wall_vertices), sizeof(wall_indices), wall_vertices, wall_indices },
+		{ "plane_xy", nullptr, sizeof(plane_xy_vertices), sizeof(plane_xy_indices), plane_xy_vertices, plane_xy_indices },
+		{ "skull", "Res/MeshData/skull.tga", sizeof(skull_vertices), sizeof(skull_indices), skull_vertices, skull_indices },
 
 	};
 
@@ -236,6 +238,19 @@ int Engine::Initialize() {
 		//	法線を設定した図形データをGPUメモリにコピーする
 		meshBuffer->AddVertexData(copyVertex.data(), mesh.vertexSize,
 			pIndex, mesh.indexSize);
+
+		//	直前のAddVertexDataで生成した描画パラメータを取得
+		const DrawParam& drawParam = meshBuffer->GetDrawParam(
+			meshBuffer->GetDrawParamSize() - 1
+		);
+		//	テクスチャを生成
+		TexturePtr texBaseColor;
+		if (mesh.textureFilename) {
+			texBaseColor = std::make_shared<Texture>(mesh.textureFilename);
+		}
+
+		//	描画パラメータとテクスチャからスタティックメッシュを生成
+		meshBuffer->CreateStaticMesh(mesh.name, drawParam, texBaseColor);
 	}
 
 	//	OBJファイルの読み込み
@@ -415,7 +430,7 @@ void Engine::DrawGameObject(GLuint prog, GameObjectList::iterator begin, GameObj
 		const auto& obj = *i;
 
 		//	図形番号が対象外の場合は描画しない
-		if (!obj->staticMesh && (obj->meshId < 0 || obj->meshId >= meshBuffer->GetDrawParamSize()))
+		if (!obj->staticMesh)
 			continue;
 
 		glProgramUniform4fv(prog, 100, 1, &obj->color.x);
@@ -426,25 +441,13 @@ void Engine::DrawGameObject(GLuint prog, GameObjectList::iterator begin, GameObj
 			sinf(obj->rotation.y), cosf(obj->rotation.y)
 		);
 
-		//	描画に使うテクスチャをバインド
-		if (obj->texColor) {
-			const GLuint tex = *obj->texColor;
-			glBindTextures(0, 1, &tex);
-		}
 
 		//	図形を描画
-		if (obj->staticMesh) {
-			if (obj->materials.empty()) {
-				Draw(*obj->staticMesh, prog, obj->staticMesh->materials);
-			}
-			else {
-				Draw(*obj->staticMesh, prog, obj->materials);
-			}
+		if (obj->materials.empty()) {
+			Draw(*obj->staticMesh, prog, obj->staticMesh->materials);
 		}
 		else {
-			const DrawParam& param = meshBuffer->GetDrawParam(obj->meshId);
-			glDrawElementsInstancedBaseVertex(
-				param.mode, param.count, GL_UNSIGNED_SHORT, param.indices, 1, param.baseVertex);
+			Draw(*obj->staticMesh, prog, obj->materials);
 		}
 	}
 	glBindVertexArray(0);

@@ -49,8 +49,6 @@ public:
 	Vector4 color = { 1.0f, 1.0f, 1.0f, 1.0f };		//	色
 	StaticMeshPtr staticMesh;						//	表示するスタティックメッシュ
 	MaterialList materials;							//	固有マテリアル配列
-	TexturePtr texColor;							//	カラーテクスチャ
-	int meshId = -1;								//	図形の番号
 	int renderQueue = RenderQueue_geometry;			//	描画順
 
 public:

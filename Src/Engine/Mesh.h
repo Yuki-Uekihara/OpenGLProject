@@ -119,6 +119,16 @@ public:
 	void AddVertexData(const Vertex* vertices, size_t vertexBytes,
 		const uint16_t* indices, size_t indexBytes, GLenum mode = GL_TRIANGLES);
 
+
+	/*
+	 *	既存の描画パラメータとテクスチャから新しいスタティックメッシュを生成する
+	 *	@param	name			メッシュ名
+	 *	@param	param			メッシュの元になる描画データ
+	 *	@param	texBaseColor	メッシュに設定するベースカラーテクスチャ
+	 *	@return					生成したスタティックメッシュ
+	 */
+	StaticMeshPtr CreateStaticMesh(const char* name, const DrawParam& param, const TexturePtr& texBaseColor);
+
 	//	全ての頂点データを削除
 	void Clear();
 

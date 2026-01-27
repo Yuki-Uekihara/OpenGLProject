@@ -12,8 +12,7 @@
 void EnemySkull::Awake() {
 	//	モデルの設定
 	auto owner = GetOwner();
-	owner->meshId = MeshId_skull;
-	owner->texColor = std::make_shared<Texture>("Res/MeshData/skull.tga");
+	owner->staticMesh = owner->GetEngine()->GetStaticMesh("skull");
 
 	//	コライダーの設定
 	auto collider = owner->AddComponent<AABBCollider>();

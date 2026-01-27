@@ -415,6 +415,26 @@ void MeshBuffer::AddVertexData(const Vertex* vertices, size_t vertexBytes, const
 }
 
 /*
+ *	既存の描画パラメータとテクスチャから新しいスタティックメッシュを生成する
+ *	@param	name			メッシュ名
+ *	@param	param			メッシュの元になる描画データ
+ *	@param	texBaseColor	メッシュに設定するベースカラーテクスチャ
+ *	@return					生成したスタティックメッシュ
+ */
+StaticMeshPtr MeshBuffer::CreateStaticMesh(const char* name, const DrawParam& param, const TexturePtr& texBaseColor) {
+	auto p = std::make_shared<StaticMesh>();
+	p->name = name;
+	p->drawParamList.push_back(param);
+	p->drawParamList[0].materialNo = 0;
+	p->materials.push_back(std::make_shared<Material>());
+	if (texBaseColor) {
+		p->materials[0]->texBaseColor = texBaseColor;
+	}
+	meshes.emplace(name, p);
+	return p;
+}
+
+/*
  *	全ての頂点データを削除
  */
 void MeshBuffer::Clear() {

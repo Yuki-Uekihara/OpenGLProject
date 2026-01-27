@@ -30,8 +30,10 @@ public:
 		auto glare = engine->Create<GameObject>("glare", owner->position);
 		glare->position.y -= 0.25f;
 		glare->renderQueue = RenderQueue_tranparent;
-		glare->meshId = MeshId_plane_xy;
-		glare->texColor = std::make_shared<Texture>("Res/glare.tga");
+		glare->staticMesh = engine->GetStaticMesh("plane_xy");
+		glare->materials = CloneMaterialList(glare->staticMesh);
+		glare->materials[0]->texBaseColor = std::make_shared<Texture>("Res/glare.tga");
+
 		glare->AddComponent<Billboard>();
 
 		//	光源オブジェクト
