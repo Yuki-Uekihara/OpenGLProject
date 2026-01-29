@@ -10,6 +10,7 @@
 #include <string>
 #include <utility>	//	std::pair
 #include <functional>
+#include <unordered_map>
 
 #include "GameObject.h"
 #include "Scene.h"
@@ -63,6 +64,8 @@ private:
 	GLuint progUnlit = 0;
 
 	MeshBufferPtr meshBuffer;		//	図形データ管理オブジェクト
+	std::unordered_map<std::string, TexturePtr> textureCache;
+
 	GameObjectList gameObjects;		//	ゲームオブジェクトの一元管理
 	float previousTime = 0;			//	前回の更新時
 	float deltaTime = 0;			//	前回の更新からの経過時間
@@ -105,6 +108,7 @@ private:
 		AABB world;
 	};
 	using WorldColliderList = std::vector<WorldCollider>;
+
 
 public:
 	Engine() = default;
@@ -170,7 +174,7 @@ public:
 		obj->staticMesh = GetStaticMesh("plane_xy");
 
 		//	固有マテリアルを生成し、テクスチャを差し替える
-		auto texBaseColor = std::make_shared<Texture>(filename);
+		auto texBaseColor = GetTexture(filename);
 		obj->materials = CloneMaterialList(obj->staticMesh);
 		obj->materials[0]->texBaseColor = texBaseColor;
 
@@ -305,6 +309,29 @@ public:
 	 */
 	inline StaticMeshPtr GetStaticMesh(const char* name) {
 		return meshBuffer->GetStaticMesh(name);
+	}
+
+	/*
+	 *	テクスチャの取得
+	 *	@param	name	
+	 *	@return	TexturePtr
+	 */
+	inline TexturePtr GetTexture(const char* name) {
+		//	キャッシュにあれば、キャッシュされているテクスチャを返す
+		auto itr = textureCache.find(name);
+		if (itr != textureCache.end()) {
+			return itr->second;
+		}
+
+		//	エンジン側からテクスチャのコンストラクトとデストラクタを呼べるようにする補助クラス
+		struct TextureHelper : public Texture {
+			TextureHelper(const char* p) : Texture(p) {}
+		};
+
+		//	キャッシュになければ、テクスチャを生成してキャッシュに登録
+		auto tex = std::make_shared<TextureHelper>(name);
+		textureCache.emplace(name, tex);
+		return tex;
 	}
 
 	//	マウスボタンのクリック状態を取得する

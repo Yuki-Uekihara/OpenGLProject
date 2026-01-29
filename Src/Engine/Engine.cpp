@@ -246,7 +246,7 @@ int Engine::Initialize() {
 		//	テクスチャを生成
 		TexturePtr texBaseColor;
 		if (mesh.textureFilename) {
-			texBaseColor = std::make_shared<Texture>(mesh.textureFilename);
+			texBaseColor = GetTexture(mesh.textureFilename);
 		}
 
 		//	描画パラメータとテクスチャからスタティックメッシュを生成

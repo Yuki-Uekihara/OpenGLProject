@@ -13,14 +13,18 @@
  *	テクスチャ管理クラス
  */
 class Texture {
+	friend class Engine;
+
 private:
 	std::string name;			//	テクスチャ名(デバッグ用)
 	GLuint id = 0;				//	管理番号
 	int width = 0, height = 0;	//	幅と高さ
 
-public:
+private:
 	explicit Texture(const char* filename);
 	~Texture();
+
+public:
 	//	コピーと代入の禁止
 	Texture(const Texture&) = delete;
 	Texture& operator = (const Texture&) = delete;

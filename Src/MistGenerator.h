@@ -34,7 +34,7 @@ public:
 		mistMaterial = CloneMaterialList(
 			GetOwner()->GetEngine()->GetStaticMesh("plane_xy")
 		);
-		mistMaterial[0]->texBaseColor = std::make_shared<Texture>("Res/mist.tga");
+		mistMaterial[0]->texBaseColor = GetOwner()->GetEngine()->GetTexture("Res/mist.tga");
 	}
 
 	virtual void Update(float deltaTime) override {

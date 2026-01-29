@@ -77,8 +77,8 @@ bool MainGameScene::Initialize(Engine& engine) {
 		}
 	}
 
-	//auto texwall = std::make_shared<Texture>("Res/wall.tga");
-	auto texCrystalBlue = std::make_shared<Texture>("Res/MeshData/crystal_blue.tga");
+	//auto texwall = engine.GetTexture("Res/wall.tga");
+	auto texCrystalBlue = engine.GetTexture("Res/MeshData/crystal_blue.tga");
 
 	for (int y = 0; y < mapSizeY; y++) {
 		for (int x = 0; x < mapSizeX; x++) {
@@ -99,7 +99,7 @@ bool MainGameScene::Initialize(Engine& engine) {
 				crystal->scale = { 0.5f, 0.5f, 0.5f };
 				crystal->staticMesh = engine.GetStaticMesh("cystal");
 				crystal->materials = CloneMaterialList(crystal->staticMesh);
-				crystal->materials[0]->texBaseColor = std::make_shared<Texture>("Res/MeshData/crystal_blue.tga");
+				crystal->materials[0]->texBaseColor = engine.GetTexture("Res/MeshData/crystal_blue.tga");
 			}
 
 			//	プレーヤーの初期位置を設定
@@ -284,7 +284,7 @@ bool MainGameScene::Initialize(Engine& engine) {
 		"Res/MeshData/skull/skull_highpoly_with_normal.obj"
 	);
 	highpoly->materials = CloneMaterialList(highpoly->staticMesh);
-	highpoly->materials[0]->texBaseColor = std::make_shared<Texture>("Res/MeshData/skull.tga");
+	highpoly->materials[0]->texBaseColor = engine.GetTexture("Res/MeshData/skull.tga");
 
 	//	比較用従来の表示テスト
 	auto lowpoly = engine.Create<GameObject>("skull_lowpoly");
@@ -293,7 +293,7 @@ bool MainGameScene::Initialize(Engine& engine) {
 	lowpoly->rotation.y = -90.0f * Deg2Rad;
 	lowpoly->staticMesh = engine.GetStaticMesh("skull");
 	lowpoly->materials = CloneMaterialList(lowpoly->staticMesh);
-	lowpoly->materials[0]->texBaseColor = std::make_shared<Texture>("Res/MeshData/skull.tga");
+	lowpoly->materials[0]->texBaseColor = engine.GetTexture("Res/MeshData/skull.tga");
 
 	auto ghost = engine.Create<GameObject>("ghost");
 	ghost->position = startPoint + Vector3(-1, 0, 2);
@@ -311,7 +311,7 @@ bool MainGameScene::Initialize(Engine& engine) {
 	//	共有マテリアルを複製し固有マテリアルを作る
 	ghost2->materials = CloneMaterialList(ghost2->staticMesh);
 	//ghost2->materials[0]->baseColor = { 0.1f, 1.0f, 0.1f, 1.0f };
-	ghost2->materials[0]->texBaseColor = std::make_shared<Texture>("Res/MeshData/ghost/ghost_green.tga");
+	ghost2->materials[0]->texBaseColor = engine.GetTexture("Res/MeshData/ghost/ghost_green.tga");
 
 	return true;	//	初期化成功
 }

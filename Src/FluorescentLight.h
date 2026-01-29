@@ -32,7 +32,7 @@ public:
 		glare->renderQueue = RenderQueue_tranparent;
 		glare->staticMesh = engine->GetStaticMesh("plane_xy");
 		glare->materials = CloneMaterialList(glare->staticMesh);
-		glare->materials[0]->texBaseColor = std::make_shared<Texture>("Res/glare.tga");
+		glare->materials[0]->texBaseColor = engine->GetTexture("Res/glare.tga");
 
 		glare->AddComponent<Billboard>();
 
