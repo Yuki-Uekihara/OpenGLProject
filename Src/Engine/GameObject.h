@@ -38,6 +38,8 @@ class GameObject {
 private:
 	Engine* engine = nullptr;						//	エンジンのアドレス
 	bool isDestroyed = false;						//	削除されているかどうか
+	GameObject* parent;								//	親オブジェクト
+	std::vector<GameObject*> children;				//	子オブジェクト
 	std::vector<ComponentPtr> components;			//	コンポーネント配列
 	std::vector<AABBColliderPtr> colliders;			//	コライダー配列
 
@@ -53,7 +55,11 @@ public:
 
 public:
 	GameObject() = default;
-	virtual ~GameObject() = default;
+	virtual ~GameObject();
+
+	//	コピーと代入の禁止
+	GameObject(GameObject&) = delete;
+	GameObject& operator = (GameObject&) = delete;
 
 public:
 	// 最初のUpdateの直前に呼び出される
@@ -115,6 +121,41 @@ public:
 
 	//	ゲームオブジェクトをエンジンから削除する
 	inline void Destroy() { isDestroyed = true; }
+
+	//	親オブジェクトを取得する
+	inline GameObject* GetParent() const { return parent; }
+
+	//	親オブジェクトを設定する
+	inline void SetParent(GameObject* parent) {
+		//	同じ親を指定した場合は処理しない
+		if (parent == this->parent)
+			return;
+
+		//	別の親が設定されている場合はその親との関係を解除する
+		if (this->parent) {
+			//	自分の親からみた位置(階層)を検索
+			auto& child = this->parent->children;
+			auto itr = std::find(child.begin(), child.end(), this);
+			if (itr != child.end()) {
+				//	関係を解除
+				child.erase(itr);
+			}
+		}
+
+		//	新たな親子関係を設定する
+		if (parent)
+			parent->children.push_back(this);
+		this->parent = parent;
+	}
+	inline void SetParent(const std::shared_ptr<GameObject>& parent) {
+		SetParent(parent.get());
+	}
+
+	//	子オブジェクトの数を取得する
+	inline size_t GetChildCount() const { return children.size(); }
+
+	//	子オブジェクトを取得する
+	inline GameObject* GetChild(size_t index) const { return children[index]; }
 };
 //	別名定義
 using GameObjectPtr = std::shared_ptr<GameObject>;

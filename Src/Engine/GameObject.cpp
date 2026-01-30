@@ -5,6 +5,18 @@
 #include "GameObject.h"
 #include <algorithm>
 
+
+/*
+ *	デストラクタ
+ */
+GameObject::~GameObject() {
+	//	オブジェクトが消える際に親子関係を解除する
+	SetParent(nullptr);
+	for (auto child : children) {
+		child->parent = nullptr;
+	}
+}
+
 /*
  *	スタートイベント
  */
