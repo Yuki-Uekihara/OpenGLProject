@@ -14,6 +14,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <functional>
 
  /*
   *	描画パラメータ
@@ -83,6 +84,10 @@ private:
 	BufferObjectPtr buffer;					//	頂点データ、インデックスデータ
 	size_t usedBytes = 0;					//	バッファの使用済み容量(byte)
 
+	//	テクスチャ生成コールバック型の別名定義
+	using TextureCallback = std::function<TexturePtr(const char*)>;
+	TextureCallback textureCallback;		//	テクスチャ生成コールバック
+
 public:
 	MeshBuffer(size_t bufferSize);
 	~MeshBuffer() = default;
@@ -99,6 +104,15 @@ public:
 	static std::shared_ptr<MeshBuffer> Create(size_t bufferSize) {
 		return std::make_shared<MeshBuffer>(bufferSize);
 	}
+
+private:
+	/*
+	 *	MTLファイルを読み込む
+	 *	@param	foldername
+	 *	@param	filename
+	 *	@return	MTLファイルに含まれるマテリアル配列
+	 */
+	std::vector<MaterialPtr> LoadMTL(const std::string& foldername, const char* filename);
 
 public:
 	/*
@@ -148,6 +162,9 @@ public:
 
 	//	VAOの取得
 	inline VertexArrayObjectPtr GetVAO() const { return vao; }
+
+	//	テクスチャ生成コールバックを設定する
+	inline void SetTextureCallback(const TextureCallback& callback) { textureCallback = callback; }
 };
 //	別名定義
 using MeshBufferPtr = std::shared_ptr<MeshBuffer>;

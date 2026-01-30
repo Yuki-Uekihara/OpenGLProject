@@ -43,9 +43,9 @@ MeshBuffer::MeshBuffer(size_t bufferSize) {
  *	MTLファイルを読み込む
  *	@param	foldername
  *	@param	filename
- *	@return		MTLファイルに含まれるマテリアル配列
+ *	@return	MTLファイルに含まれるマテリアル配列
  */
-std::vector<MaterialPtr> LoadMTL(const std::string& foldername, const char* filename) {
+std::vector<MaterialPtr> MeshBuffer::LoadMTL(const std::string& foldername, const char* filename) {
 	//	MTLファイルを開く
 	const std::string fullpath = foldername + filename;
 	std::ifstream file(fullpath);
@@ -90,7 +90,7 @@ std::vector<MaterialPtr> LoadMTL(const std::string& foldername, const char* file
 		if (sscanf_s(line.data(), " map_Kd %999s", &texName, 999) == 1) {
 			const std::string filename = foldername + texName;
 			if (std::filesystem::exists(filename)) {
-				pMat->texBaseColor = std::make_shared<Texture>(filename.c_str());
+				pMat->texBaseColor = textureCallback(filename.c_str());
 			}
 			else {
 				//	ファイルが開けない
@@ -108,7 +108,7 @@ std::vector<MaterialPtr> LoadMTL(const std::string& foldername, const char* file
 		if (sscanf_s(line.data(), " map_Ke %999s", &texName, 999) == 1) {
 			const std::string filename = foldername + texName;
 			if (std::filesystem::exists(filename)) {
-				pMat->texEmission = std::make_shared<Texture>(filename.c_str());
+				pMat->texEmission = textureCallback(filename.c_str());
 			}
 			else {
 				//	ファイルが開けない

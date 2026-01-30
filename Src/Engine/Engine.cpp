@@ -222,6 +222,9 @@ int Engine::Initialize() {
 
 	//	図形データから描画パラメータを作成し、データをGPUメモリにコピーする
 	meshBuffer = MeshBuffer::Create(32'000'000);
+	meshBuffer->SetTextureCallback(
+		[this](const char* filename) { return GetTexture(filename); }
+	);
 	for (const auto& mesh : meshes) {
 		//	法線を設定するために図形のコピーを作る
 		auto pVertex = static_cast<const Vertex*>(mesh.vertexData);
