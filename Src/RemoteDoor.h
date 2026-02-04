@@ -7,11 +7,15 @@
 
 #include "MapObject.h"
 #include "Engine/Engine.h"
+#include "Engine/AABBCollider.h"
 
  /*
   *	遠隔操作で開くドア
   */
 class RemoteDoor : public MapObject {
+private:
+	bool isActioned = false;
+
 public:
 	RemoteDoor() = default;
 	virtual ~RemoteDoor() = default;
@@ -50,10 +54,26 @@ public:
 
 	}
 
+	virtual void Update(float deltaTime) override {
+		if (!isActioned)
+			return;
+
+		constexpr float speed = 120.0f * Deg2Rad;
+		GameObject* owner = GetOwner();
+
+		//	90度になるまで回転
+		owner->rotation.y += speed * deltaTime;
+		if (owner->rotation.y >= 90.0f * Deg2Rad)
+			owner->rotation.y = 90.0f * Deg2Rad;
+
+		auto col = owner->GetComponent<AABBCollider>();
+		if (col)
+			col->isTrigger = true;
+	}
+
 	//	ドアを開ける
 	virtual void RemoteAction(MapObject* linkedObject) override {
-		//	ドアを床下に移動
-		//GetOwner()->position.y -= 2;
+		isActioned = true;
 	}
 };
 

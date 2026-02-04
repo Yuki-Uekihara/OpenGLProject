@@ -233,4 +233,58 @@ Vector4 Vector4::Scale(const Vector4& v1, const Vector4& v2) {
 	return Vector4(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w);
 }
 
+/*
+ *	 座標変換ベクトルの配列を計算する
+ *	@param	out Vector4 演算結果
+ *	@param		Vector3 拡縮
+ *	@param		Vector3 回転
+ *	@param		Vector3 平行移動
+ */
+void Vector4::GetTransformVectors(Vector4* result, const Vector3& scale, const Vector3& rotation, const Vector3& position) {
+	const float sinX = std::sinf(rotation.x);
+	const float cosX = std::cosf(rotation.x);
+	const float sinY = std::sinf(rotation.y);
+	const float cosY = std::cosf(rotation.y);
+
+	result[0] = { scale.x * cosY , scale.y * sinX * sinY, scale.z * cosX * sinY , position.x };
+	result[1] = { 0				 , scale.y * cosX		, scale.z * -sinX		, position.y };
+	result[2] = { scale.x * -sinY, scale.y * sinX * cosY, scale.z * cosX * cosY , position.z };
+	result[3] = { 0				 , 0					, 0						, 1			 };
+}
+
+/*
+ *	 座標変換ベクトルの配列をかけ合わせる
+ *	@param	out Vector4 演算結果
+ *	@param		Vector4 ベクトル1
+ *	@param		Vector4 ベクトル2
+ */
+void Vector4::MultiplyTransformVectors(Vector4* result, const Vector4* m, const Vector4* n) {
+}
+
+/*
+ *	 法線変換ベクトルの配列を計算する
+ *	@param	out Vector3 演算結果
+ *	@param		Vector3 回転
+ */
+void Vector4::GetRotationVectors(Vector3* result, const Vector3& rotation) {
+	const float sinX = std::sinf(rotation.x);
+	const float cosX = std::cosf(rotation.x);
+	const float sinY = std::sinf(rotation.y);
+	const float cosY = std::cosf(rotation.y);
+
+	result[0] = { cosY  , sinX * sinY, cosX * sinY };
+	result[1] = { 0		, cosX		 , -sinX	   };
+	result[2] = { -sinY , sinX * cosY, cosX * cosY };
+}
+
+/*
+ *	 法線変換ベクトルの配列をかけ合わせる
+ *	@param	out Vector3 演算結果
+ *	@param		Vector3 ベクトル1
+ *	@param		Vector3 ベクトル2
+ */
+void Vector4::MultiplayRotationVectors(Vector3* result, const Vector3* m, const Vector3* n) {
+
+}
+
 #pragma endregion

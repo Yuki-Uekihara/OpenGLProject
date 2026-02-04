@@ -13,17 +13,13 @@ layout (location = 1) out vec2 outTexcoord;	//	テクスチャ座標
 
 //	プログラムからの入力
 //layout (location = 0) uniform float timer;	//	時間
-layout (location = 0) uniform vec3 scale;		//	拡大率
-layout (location = 1) uniform vec3 position;	//	平行移動
-layout (location = 2) uniform vec4 sinCosXY;		//	X,Y軸回転
 layout (location = 3) uniform vec2 aspectRatioAndScaleFov;	//	アスペクト比と視野角
 layout (location = 4) uniform vec3 cameraPosition;	//	カメラの平行移動
 layout (location = 5) uniform vec2 cameraSinCosY;	//	カメラのY軸回転
 
-//	親の座標変換パラメータ
-layout (location = 10) uniform vec3 parentScale;	//	親の拡大率
-layout (location = 11) uniform vec3 parentPosition;	//	親の平行移動
-layout (location = 12) uniform vec4 parentSinCosXY;	//	親のX,Y軸回転
+layout (location = 10) uniform vec4 transform[4];
+layout (location = 14) uniform vec3 transformNormal[3];
+
 
 /*
  *	ベクトルを回転させる
@@ -52,20 +48,19 @@ void main() {
 	outTexcoord = inTexcoord;
 
 	//	ローカル座標系からワールド座標系に変換
-	vec3 pos = inPosition * scale;
+	vec4 v = vec4(inPosition, 1);
+	gl_Position = vec4(
+		dot(v, transform[0]),
+		dot(v, transform[1]),
+		dot(v, transform[2]),
+		dot(v, transform[3])
+	);
 
-	gl_Position.xyz = RotateXY(pos, sinCosXY.xy, sinCosXY.zw);
-	gl_Position.xyz += position;	//	スウィズリング(swizzling)
-	
-	//	親の座標変換
-	gl_Position.xyz *= parentScale;
-	gl_Position.xyz = RotateXY(gl_Position.xyz, parentSinCosXY.xy, parentSinCosXY.zw);
-	gl_Position.xyz += parentPosition;
 
 	outPosition = gl_Position.xyz;
 
 	//	ワールド座標系からビュー座標系に変換
-	pos = gl_Position.xyz - cameraPosition;
+	vec3 pos = gl_Position.xyz - cameraPosition;
 	float cameraSinY = cameraSinCosY.x;
 	float cameraCosY = cameraSinCosY.y;
 	gl_Position.x = pos.x * cameraCosY + pos.z * cameraSinY;

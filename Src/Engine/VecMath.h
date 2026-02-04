@@ -13,12 +13,6 @@ struct Vector2;
 struct Vector3;
 struct Vector4;
 
-struct A {
-	int a, b, c;
-	char d;
-};
-
-
 struct Vector2 {
 	//	メンバ変数
 	float x, y;
@@ -122,6 +116,25 @@ struct Vector4 {
 
 	//	演算
 	static Vector4 Scale(const Vector4& v1, const Vector4& v2);
+
+
+	//	座標変換ベクトルの配列を計算する
+	void GetTransformVectors(Vector4* result,
+		const Vector3& scale, const Vector3& rotation, const Vector3& position);
+
+	//	座標変換ベクトルの配列をかけ合わせる
+	void MultiplyTransformVectors(Vector4* result,
+		const Vector4* m, const Vector4* n);
+
+	//	法線変換ベクトルの配列を計算する
+	void GetRotationVectors(Vector3* result,
+		const Vector3& rotation);
+
+	//	法線変換ベクトルの配列をかけ合わせる
+	void MultiplayRotationVectors(Vector3* result,
+		const Vector3* m, const Vector3* n);
 };
+
+
 
 #endif // !_VECMATH_H_
