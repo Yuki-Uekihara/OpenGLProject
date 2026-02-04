@@ -444,6 +444,22 @@ void Engine::DrawGameObject(GLuint prog, GameObjectList::iterator begin, GameObj
 			sinf(obj->rotation.y), cosf(obj->rotation.y)
 		);
 
+		//	親がいる場合：親の座標変換パラメータをGPUメモリにコピー
+		if (obj->parent) {
+			const GameObject* parent = obj->parent;
+			glProgramUniform3fv(prog, 10, 1, &parent->scale.x);
+			glProgramUniform3fv(prog, 11, 1, &parent->position.x);
+			glProgramUniform4f(prog, 12, 
+				std::sinf(parent->rotation.x), std::cosf(parent->rotation.x),
+				std::sinf(parent->rotation.y), std::cosf(parent->rotation.y)
+				);
+		}
+		//	親がいない場合：「何も変換されない値」をGPUメモリにコピー
+		else {
+			glProgramUniform3f(prog, 10, 1, 1, 1);
+			glProgramUniform3f(prog, 11, 0, 0, 0);
+			glProgramUniform4f(prog, 12, 0, 1, 0, 1);
+		}
 
 		//	図形を描画
 		if (obj->materials.empty()) {
@@ -497,6 +513,17 @@ void Engine::HandleGameObjectCollision() {
 			list[i].world.max = Vector3::Scale(list[i].world.max, obj->scale);
 			list[i].world.min += obj->position;
 			list[i].world.max += obj->position;
+
+			//	親の座標変換パラメータを反映
+			Vector3 s = obj->scale;
+			Vector3 v = obj->position;
+
+			if (obj->parent) {
+				list[i].world = {
+					Vector3::Scale(list[i].world.min, obj->parent->scale) + obj->parent->position,
+					Vector3::Scale(list[i].world.max, obj->parent->scale) + obj->parent->position
+				};
+			}
 		}
 		colliders.push_back(list);
 	}
@@ -780,10 +807,18 @@ bool Engine::Raycast(const Ray& ray, RaycastHit& hitInfo, const RaycastPredicate
 	for (const auto& obj : gameObjects) {
 		for (const auto& col : obj->colliders) {
 			//	AABBをワールド座標系に変換
-			const AABB worldAABB = {
+			AABB worldAABB = {
 				Vector3::Scale(col->aabb.min, obj->scale) + obj->position,
 				Vector3::Scale(col->aabb.max, obj->scale) + obj->position
 			};
+
+			//	親の座標変換パラメータを反映
+			if (obj->parent) {
+				worldAABB = {
+					Vector3::Scale(worldAABB.min, obj->parent->scale) + obj->parent->position,
+					Vector3::Scale(worldAABB.max, obj->parent->scale) + obj->parent->position
+				};
+			}
 
 			//	光線との交差判定
 			float d;

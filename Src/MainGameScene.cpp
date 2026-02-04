@@ -16,6 +16,7 @@
 #include "MistGenerator.h"
 #include "Engine/EasyAudio/EasyAudio.h"
 #include "AudioSettings.h"
+#include "NormalDoor.h"
 
 #include <fstream>
 #include <string>
@@ -132,34 +133,12 @@ bool MainGameScene::Initialize(Engine& engine) {
 
 			//	ドアを生成
 			else if (tileId == '|' || tileId == '-') {
-				//	アーチ
-				auto arch = engine.Create<GameObject>("arch", { posX, 0, posZ });
-				arch->scale = Vector3::one * squareScale;
-				arch->rotation.y = 180.0f * Deg2Rad;
-				arch->staticMesh = engine.GetStaticMesh("Res/MeshData/AlchemistHouse/Arch.obj");
-
-				//	ドア
-				auto door = engine.Create<GameObject>("door", { posX, 0, posZ });
+				auto door = engine.Create<GameObject>("NormalDoor", { posX, 0.0f, posZ });
 				door->scale = Vector3::one * squareScale;
-				door->staticMesh = engine.GetStaticMesh("Res/MeshData/AlchemistHouse/Door.obj");
-				//	ドアのコライダー
-				auto collider = door->AddComponent<AABBCollider>();
-				collider->aabb = {
-					{ -1.0f, 0.0f, -0.5f },
-					{  1.0f, 2.0f,  0.5f }
-				};
-				collider->isStatic = true;
-
-
-				//	向きに応じて回転
 				if (tileId == '|') {
-					arch->rotation.y += 90.0f * Deg2Rad;
-					door->rotation.y += 90.0f * Deg2Rad;
-					collider->aabb = {
-						{ -0.5f, 0.0f, -1.0f },
-						{  0.5f, 2.0f,  1.0f }
-					};
+					door->rotation.y = 90.0f * Deg2Rad;
 				}
+				door->AddComponent<NormalDoor>();
 			}
 		}
 	}
@@ -396,8 +375,12 @@ void MainGameScene::StatePlaying(Engine& engine, float deltaTime) {
 			GameObject* owner = hitInfo.collider->GetOwner();
 
 			//	光線がドアに衝突していたらドアをどかす
-			if (owner->name == "door") {
-				owner->position.y = -2;		//	ドアを床下に移動
+			if (owner->name == "NormalDoor.Door") {
+				if (owner->rotation.y == 0.0f) {
+					owner->rotation.y = 90.0f * Deg2Rad;		//	ドアを回転
+					if (auto collider = owner->GetComponent<AABBCollider>())
+						collider->isTrigger = true;
+				}
 				EasyAudio::PlayOneShot(SE::doorOpen);
 			}
 

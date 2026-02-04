@@ -70,14 +70,14 @@ Texture::Texture(const char* filename) {
 			if (isRLE) {
 				//	圧縮データの場合は指定回数コピーする
 				for (int i = 0; i < count; i++) {
-					memcpy_s(dest, sizeof(dest), src, pixelBytes);
+					memcpy_s(dest, destEnd - dest, src, pixelBytes);
 					dest += pixelBytes;
 				}
 			}
 			else{
 				//	無圧縮データの場合は全体をコピーする
 				const int dataBytes = pixelBytes * count;
-				memcpy_s(dest, sizeof(dest), src, dataBytes);
+				memcpy_s(dest, destEnd - dest, src, dataBytes);
 				dest += dataBytes;
 				src += dataBytes;
 			}

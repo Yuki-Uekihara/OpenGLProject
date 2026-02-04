@@ -154,6 +154,7 @@
     <ClCompile Include="Src\GoalEvent.cpp" />
     <ClCompile Include="Src\Main.cpp" />
     <ClCompile Include="Src\MainGameScene.cpp" />
+    <ClCompile Include="Src\NormalDoor.cpp" />
     <ClCompile Include="Src\TitleScene.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -184,6 +185,7 @@
     <ClInclude Include="Src\MapObject.h" />
     <ClInclude Include="Src\Mist.h" />
     <ClInclude Include="Src\MistGenerator.h" />
+    <ClInclude Include="Src\NormalDoor.h" />
     <ClInclude Include="Src\PlayerComponent.h" />
     <ClInclude Include="Src\RemoteDoor.h" />
     <ClInclude Include="Src\SimpleLever.h" />

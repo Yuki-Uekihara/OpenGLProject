@@ -20,6 +20,11 @@ layout (location = 3) uniform vec2 aspectRatioAndScaleFov;	//	アスペクト比と視野
 layout (location = 4) uniform vec3 cameraPosition;	//	カメラの平行移動
 layout (location = 5) uniform vec2 cameraSinCosY;	//	カメラのY軸回転
 
+//	親の座標変換パラメータ
+layout (location = 10) uniform vec3 parentScale;	//	親の拡大率
+layout (location = 11) uniform vec3 parentPosition;	//	親の平行移動
+layout (location = 12) uniform vec4 parentSinCosXY;	//	親のX,Y軸回転
+
 /*
  *	ベクトルを回転させる
  *	@param	v		ベクトル
@@ -52,6 +57,11 @@ void main() {
 	gl_Position.xyz = RotateXY(pos, sinCosXY.xy, sinCosXY.zw);
 	gl_Position.xyz += position;	//	スウィズリング(swizzling)
 	
+	//	親の座標変換
+	gl_Position.xyz *= parentScale;
+	gl_Position.xyz = RotateXY(gl_Position.xyz, parentSinCosXY.xy, parentSinCosXY.zw);
+	gl_Position.xyz += parentPosition;
+
 	outPosition = gl_Position.xyz;
 
 	//	ワールド座標系からビュー座標系に変換

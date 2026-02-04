@@ -42,12 +42,18 @@ public:
 			owner->name, owner->position, owner->rotation
 		);
 		arch->staticMesh = engine->GetStaticMesh("Res/MeshData/AlchemistHouse/Arch.obj");
+
+		//	枠をドアの親にする
+		owner->SetParent(arch);
+		owner->position = { -0.4f, 0.0f, 0.0f };
+		owner->rotation = { 0.0f, 0.0f, 0.0f };
+
 	}
 
 	//	ドアを開ける
 	virtual void RemoteAction(MapObject* linkedObject) override {
 		//	ドアを床下に移動
-		GetOwner()->position.y -= 2;
+		//GetOwner()->position.y -= 2;
 	}
 };
 
