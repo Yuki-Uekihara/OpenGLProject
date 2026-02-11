@@ -259,8 +259,6 @@ int Engine::Initialize() {
 	//	OBJファイルの読み込み
 	meshBuffer->LoadOBJ("Res/MeshData/skull/skull_highpoly_with_normal.obj");
 	meshBuffer->LoadOBJ("Res/MeshData/ghost/ghost.obj");
-	//meshBuffer->LoadOBJ("Res/MeshData/door/door.obj");
-	//meshBuffer->LoadOBJ("Res/MeshData/door/arch.obj");
 	meshBuffer->LoadOBJ("Res/MeshData/lever/lever_arm.obj");
 	meshBuffer->LoadOBJ("Res/MeshData/lever/lever_cover.obj");
 	meshBuffer->LoadOBJ("Res/MeshData/AlchemistHouse/BOX.obj");
@@ -269,6 +267,9 @@ int Engine::Initialize() {
 	meshBuffer->LoadOBJ("Res/MeshData/AlchemistHouse/Ceil.obj");
 	meshBuffer->LoadOBJ("Res/MeshData/AlchemistHouse/Floor.obj");
 	meshBuffer->LoadOBJ("Res/MeshData/HorrorHospital/Lamp.obj");
+
+	meshBuffer->LoadOBJ("Res/MeshData/arm_and_hand/arm_and_hand_grab.obj");
+	meshBuffer->LoadOBJ("Res/MeshData/Weapon/sword.obj");
 
 	//	一元管理配列の容量を予約
 	gameObjects.reserve(1000);
@@ -437,29 +438,25 @@ void Engine::DrawGameObject(GLuint prog, GameObjectList::iterator begin, GameObj
 			continue;
 
 		glProgramUniform4fv(prog, 100, 1, &obj->color.x);
-		glProgramUniform3fv(prog, 0, 1, &obj->scale.x);
-		glProgramUniform3fv(prog, 1, 1, &obj->position.x);
-		glProgramUniform4f(prog, 2,
-			sinf(obj->rotation.x), cosf(obj->rotation.x),
-			sinf(obj->rotation.y), cosf(obj->rotation.y)
-		);
 
-		//	親がいる場合：親の座標変換パラメータをGPUメモリにコピー
-		if (obj->parent) {
-			const GameObject* parent = obj->parent;
-			glProgramUniform3fv(prog, 10, 1, &parent->scale.x);
-			glProgramUniform3fv(prog, 11, 1, &parent->position.x);
-			glProgramUniform4f(prog, 12, 
-				std::sinf(parent->rotation.x), std::cosf(parent->rotation.x),
-				std::sinf(parent->rotation.y), std::cosf(parent->rotation.y)
-				);
+		//	自分の座標変換行列を求める
+		Matrix4x4 transform = GetTransformMatrix(obj->scale, obj->rotation, obj->position);
+		Matrix3x3 transformNormal = GetRotationMatrix(obj->rotation);
+
+		//	全ての親の座標変換行列をかけ合わせる
+		for (GameObject* p = obj->parent; p; p = p->parent) {
+			Matrix4x4 parentTransform = GetTransformMatrix(p->scale, p->rotation, p->position);
+			Matrix3x3 parentTransformNormal = GetRotationMatrix(p->rotation);
+
+			transform = parentTransform * transform;
+			transformNormal = parentTransformNormal * transformNormal;
 		}
-		//	親がいない場合：「何も変換されない値」をGPUメモリにコピー
-		else {
-			glProgramUniform3f(prog, 10, 1, 1, 1);
-			glProgramUniform3f(prog, 11, 0, 0, 0);
-			glProgramUniform4f(prog, 12, 0, 1, 0, 1);
-		}
+
+		//	座標変換ベクトル配列をGPUメモリにコピー
+		glProgramUniformMatrix4fv(prog, 0, 1, GL_FALSE, &transform[0].x);
+		if (prog != progUnlit)
+			glProgramUniformMatrix3fv(prog, 1, 1, GL_FALSE, &transformNormal[0].x);
+
 
 		//	図形を描画
 		if (obj->materials.empty()) {

@@ -30,7 +30,24 @@ public:
 
 public:
 	virtual void Awake() override {
-		auto light = GetOwner()->AddComponent<Light>();
+		auto owner = GetOwner();
+		auto engine = owner->GetEngine();
+
+		//	Žè
+		auto hand = engine->Create<GameObject>("player.hand", { 1.0f, -0.4f, -1.5f });
+		hand->rotation.x = -35.0f * Deg2Rad;
+		hand->rotation.y = 180.0f * Deg2Rad;
+		hand->staticMesh = engine->GetStaticMesh("Res/MeshData/arm_and_hand/arm_and_hand_grab.obj");
+		hand->SetParent(owner);
+
+		//	•Ší
+		auto weapon = engine->Create<GameObject>("weapon", { 0.0f, -0.35f, 0.05f });
+		weapon->rotation.x = 0.0f * Deg2Rad;
+		weapon->rotation.y = 35.0f * Deg2Rad;
+		weapon->staticMesh = engine->GetStaticMesh("Res/MeshData/Weapon/sword.obj");
+		weapon->SetParent(hand);
+
+		auto light = owner->AddComponent<Light>();
 		light->color = { 1.0f, 0.9f, 0.8f };
 		light->intensity = 5.0f;
 		light->radius = 5.0f;

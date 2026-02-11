@@ -19,8 +19,9 @@ layout (location = 3) uniform vec2 aspectRatioAndScaleFov;	//	アスペクト比と視野
 layout (location = 4) uniform vec3 cameraPosition;	//	カメラの平行移動
 layout (location = 5) uniform vec2 cameraSinCosY;	//	カメラのY軸回転
 
-layout (location = 10) uniform vec4 transform[4];
-layout (location = 14) uniform vec3 transformNormal[3];
+layout (location = 0) uniform mat4 transformMatrix;
+layout (location = 1) uniform mat3 normalMatrix;
+
 
 
 /*
@@ -51,21 +52,12 @@ void main() {
 
 	//	ローカル座標系からワールド座標系に変換
 	vec4 v = vec4(inPosition, 1);
-	gl_Position = vec4(
-		dot(v, transform[0]),
-		dot(v, transform[1]),
-		dot(v, transform[2]),
-		dot(v, transform[3])
-	);
+	gl_Position = transformMatrix * vec4(inPosition, 1);
 
 	outPosition = gl_Position.xyz;
 
 	//	ワールド法線を計算
-	outNormal = vec3(
-		dot(inNormal, transformNormal[0]),
-		dot(inNormal, transformNormal[1]),
-		dot(inNormal, transformNormal[2])
-	);
+	outNormal = normalMatrix * inNormal;
 
 	//	ワールド座標系からビュー座標系に変換
 	vec3 pos = gl_Position.xyz - cameraPosition;

@@ -63,21 +63,24 @@ Texture::Texture(const char* filename) {
 
 		while (dest != destEnd) {
 			//	ヘッダからIDとデータ数を取得
-			const int isRLE = *src & 0b1000'0000;
-			const int count = (*src & 0b0111'1111) + 1;
+			const int isRLE = *src & 0x80;
+			const int count = (*src & 0x7f) + 1;
 			src++;	//	アドレスを次に進める
 
 			if (isRLE) {
 				//	圧縮データの場合は指定回数コピーする
 				for (int i = 0; i < count; i++) {
-					memcpy_s(dest, destEnd - dest, src, pixelBytes);
+					//memcpy_s(dest, destEnd - dest, src, pixelBytes);
+					memcpy(dest, src, pixelBytes);
 					dest += pixelBytes;
 				}
+				src += pixelBytes;
 			}
 			else{
 				//	無圧縮データの場合は全体をコピーする
 				const int dataBytes = pixelBytes * count;
-				memcpy_s(dest, destEnd - dest, src, dataBytes);
+				//memcpy_s(dest, destEnd - dest, src, dataBytes);
+				memcpy(dest, src, dataBytes);
 				dest += dataBytes;
 				src += dataBytes;
 			}
