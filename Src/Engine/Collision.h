@@ -16,6 +16,14 @@ struct AABB {
 };
 
 /*
+ *	‹…‘Ì
+ */
+struct Sphere {
+	Vector3 position;	//	’†S“_
+	float radius;		//	”¼Œa
+};
+
+/*
  *	Œõü
  */
 struct Ray {
@@ -25,6 +33,10 @@ struct Ray {
 
 //	Õ“Ë‚µ‚Ä‚¢‚é‚©‚Ç‚¤‚©
 bool Intersect(const AABB& a, const AABB& b, Vector3& penetration);
-bool Intersect(const AABB& a, const Ray& b, float& distance);
+bool Intersect(const Sphere& a, const Sphere& b, Vector3& penetration);
+bool Intersect(const AABB& aabb, const Sphere& sphere, Vector3& penetration);
+
+bool Intersect(const AABB& aabb, const Ray& ray, float& distance);
+bool Intersect(const Sphere& sphere, const Ray& ray, float& distance);
 
 #endif // !_COLLISION_H_

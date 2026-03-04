@@ -76,6 +76,95 @@ bool Intersect(const AABB& a, const AABB& b, Vector3& penetration) {
 }
 
 /*
+ *  球同士の交差判定
+ *  @param Sphere a   判定対象1
+ *  @param Sphere b   判定対象2
+ *  @param Vector3 penetration 貫通ベクトル
+ */
+bool Intersect(const Sphere& a, const Sphere& b, Vector3& penetration) {
+    //  2つの球の中心点の距離を求める
+    const Vector3 v = b.position - a.position;  //  aの中心点からbの中心点に向かうベクトル
+    const float ll = Vector3::Dot(v, v);        //  vベクトルの長さの2乗
+
+    //  ll が2つの球の半径の合計よりも長い場合は交差していない
+    const float r = a.radius + b.radius;        //  aとbの半径の合計
+    if (ll > r * r)                             //  √を避けるため2乗同士で比較する
+        return false;
+
+    //  交差しているので貫通ベクトルを求める
+    const float l = std::sqrtf(ll);             //  「長さの2乗」から「長さ」に変換
+    const float t = (r - l) / l;                //  「半径の合計 - 長さ」の「長さに対する比率」を計算
+    penetration = v * t;                        //  貫通ベクトルを求める
+    return true;
+}
+
+/*
+ *  AABBから点への最近点
+ *  @param[in]  AABB        判定対象のAABB
+ *  @param[in]  Vector3     判定対象の点
+ */
+Vector3 ClosestPoint(const AABB& aabb, const Vector3& point) {
+    Vector3 result;
+    for (int i = 0; i < 3; i++) {
+        result[i] = std::clamp(point[i], aabb.min[i], aabb.max[i]);
+    }
+    return result;
+}
+
+/*
+ *  AABBと球の交差判定
+ *  @param AABB aabb   判定対象1
+ *  @param Sphere sphere   判定対象2
+ *  @param Vector3 penetration 貫通ベクトル
+ */
+bool Intersect(const AABB& aabb, const Sphere& sphere, Vector3& penetration) {
+    const Vector3 p = ClosestPoint(aabb, sphere.position);
+    const Vector3 v = sphere.position - p;      //   最近点から球の中心点に向かうベクトル
+    const float ll = Vector3::Dot(v, v);        //  長さの2乗
+
+    //  最近点までの距離が球体の半径よりも長ければ交差していない
+    if(ll > sphere.radius * sphere.radius)
+        return false;
+
+    //  交差しているので貫通ベクトルを求める
+    //  距離0より大きい場合、球体の中心はAABBの外側にある
+    if (ll > 0) {
+        //  球の中心座標から最近点へ向かう方向から衝突したとみなす
+        const float l = std::sqrtf(ll);
+        penetration = v * ((sphere.radius - l) / l);
+    }
+    //  距離が0の場合、球体の中心はAABBの内側にある
+    else {
+        //  貫通距離が最も短い面から衝突したとみなす
+        int faceIndex = 0;      //  貫通方向を示すインデックス変数
+        float distance = FLT_MAX;   //  貫通距離
+        for (int i = 0; i < 3; i++) {
+            float t0 = p[i] - aabb.min[i];
+            if (t0 < distance) {
+                faceIndex = i * 2;
+                distance = t0;
+            }
+
+            float t1 = aabb.max[i] - p[i];
+            if (t1 < distance) {
+                faceIndex = i * 2 + 1;
+                distance = t1;
+            }
+        }
+
+        //  「AABBが球体に対してどれだけ貫通しているか」を示すベクトルが欲しいので
+        //  面の外向きのベクトルを用意する
+        static const Vector3 faceNormals[] = {
+            Vector3::left, Vector3::right,      //  -X, +X
+            Vector3::down, Vector3::up,         //  -Y, +Y
+            Vector3::back, Vector3::forward     //  -Z, +Z
+        };
+        penetration = faceNormals[faceIndex] * distance;
+    }
+    return true;
+}
+
+/*
  *  スラブ(ある軸に垂直な2平面に囲まれた範囲)と光線の交差判定
  *  @param[in]  min         スラブの開始距離
  *  @param[in]  max         スラブの終了距離
@@ -139,4 +228,29 @@ bool Intersect(const AABB& aabb, const Ray& ray, float& distance) {
     //  交点までの距離を設定
     distance = tmin;
     return true;        //  交差している
+}
+
+bool Intersect(const Sphere& sphere, const Ray& ray, float& distance) {
+    //	Ray = 始点P, 向きD, 任意の位置変数t
+    //	Ray(t) = P + t * D
+
+    //	Sphere = 中心C, 半径r, 任意の座標X
+    //	dot((X - C), (X - C)) = r * r
+
+    //	球体と光線が交差する座標 = X に Ray(t) を代入
+    //	dot((P + t * D - C), (P + t * D - C ) = r * r
+    //	P - C を m とする
+    //	dot((tD + m), (tD + m)) = rr
+    //	展開
+    //	dot(D, D) * t^2 + 2(dot(m, D))t + dot(m, m) = r * r
+    //	D = 方向ベクトル = 長さは1
+    //	t^2 + 2(dot(m, D))t + dot(m, m) = r^2
+    //	解の公式
+    //	t = -b ±√(b^2 - c)
+    //	b = dot(m, D), c = dot(m, m) - r^2
+    //	※Rayには始点があるため、始点より手前の解は除外する
+    //	※t > 0
+
+
+    return false;
 }

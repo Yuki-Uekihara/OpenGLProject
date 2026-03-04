@@ -135,10 +135,15 @@ Vector3 Vector3::Scale(const Vector3& v1, const Vector3& v2) {
 }
 
 float Vector3::Dot(const Vector3& v1, const Vector3& v2) {
+#if 0
 	const Vector3 vn1 = v1.Normalized();
 	const Vector3 vn2 = v2.Normalized();
 
 	return vn1.x * vn2.x + vn1.y * vn2.y + vn1.z * vn2.z;
+#else
+
+	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+#endif
 }
 
 Vector3 Vector3::Cross(const Vector3& v1, const Vector3& v2) {
