@@ -482,6 +482,36 @@ void Engine::UpdateGameObject(float deltaTime) {
 			pObj->Update(deltaTime);
 		}
 	}
+
+	//	ローカル座標変換行列を計算
+	for (int i = 0; i < gameObjects.size(); i++) {
+		GameObject* obj = gameObjects[i].get();
+		obj->transformMatrix = GetTransformMatrix(obj->scale, obj->rotation, obj->position);
+		obj->normalMatrix = GetRotationMatrix(obj->rotation);
+	}
+
+	//	ワールド座標変換行列を計算
+	std::vector<Matrix4x4> worldTransforms(gameObjects.size());
+	std::vector<Matrix3x3> worldNormals(gameObjects.size());
+	for (int i = 0; i < gameObjects.size(); i++) {
+		GameObject* obj = gameObjects[i].get();
+		Matrix4x4 m = obj->transformMatrix;
+		Matrix3x3 n = obj->normalMatrix;
+
+		for (obj = obj->parent; obj; obj = obj->parent) {
+			m = obj->transformMatrix * m;
+			n = obj->normalMatrix * n;
+		}
+		worldTransforms[i] = m;
+		worldNormals[i] = n;
+	}
+
+	//	計算したワールド座標変換行列をメンバに格納
+	for (int i = 0; i < gameObjects.size(); i++) {
+		gameObjects[i]->transformMatrix = worldTransforms[i];
+		gameObjects[i]->normalMatrix = worldNormals[i];
+	}
+
 }
 
 /*

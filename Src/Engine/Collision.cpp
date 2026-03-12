@@ -240,6 +240,8 @@ bool Intersect(const Sphere& sphere, const Ray& ray, float& distance) {
     //	球体と光線が交差する座標 = X に Ray(t) を代入
     //	dot((P + t * D - C), (P + t * D - C ) = r * r
     //	P - C を m とする
+    const Vector3 m = ray.origin - sphere.position;
+
     //	dot((tD + m), (tD + m)) = rr
     //	展開
     //	dot(D, D) * t^2 + 2(dot(m, D))t + dot(m, m) = r * r
@@ -247,10 +249,30 @@ bool Intersect(const Sphere& sphere, const Ray& ray, float& distance) {
     //	t^2 + 2(dot(m, D))t + dot(m, m) = r^2
     //	解の公式
     //	t = -b ±√(b^2 - c)
+    const float b = Vector3::Dot(m, ray.direction); //  レイの方向とvの距離
+    const float c = Vector3::Dot(m, m) - sphere.radius * sphere.radius;
+
     //	b = dot(m, D), c = dot(m, m) - r^2
     //	※Rayには始点があるため、始点より手前の解は除外する
     //	※t > 0
 
+    //  光線の始点が球の外側にあり、光線が球体から離れていく方向に発射された場合
+    if (c > 0 && b > 0)
+        //  交差しない
+        return false;
 
-    return false;
+    //  判別式が負の場合    √の部分
+    const float d = b * b - c;
+    if (d < 0)
+        //  √内がマイナスなので解なし
+        return false;
+
+    //  最初に交差する位置を計算
+    distance = -b - std::sqrtf(d);
+
+    //  負の値の位置は光線の始点よりも手前側にあるので、球体の内側から発射されたことを意味する
+    if (distance < 0)
+        distance = 0;
+
+    return true;
 }

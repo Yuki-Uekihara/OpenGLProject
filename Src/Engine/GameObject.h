@@ -38,10 +38,12 @@ class GameObject {
 private:
 	Engine* engine = nullptr;						//	エンジンのアドレス
 	bool isDestroyed = false;						//	削除されているかどうか
+	Matrix4x4 transformMatrix = Matrix4x4::identity;//	座標変換行列
+	Matrix3x3 normalMatrix = Matrix3x3::identity;	//	法線変換行列
 	GameObject* parent;								//	親オブジェクト
 	std::vector<GameObject*> children;				//	子オブジェクト
 	std::vector<ComponentPtr> components;			//	コンポーネント配列
-	std::vector<AABBColliderPtr> colliders;			//	コライダー配列
+	std::vector<ColliderPtr> colliders;				//	コライダー配列
 
 public:
 	std::string name;								//	名前
@@ -83,7 +85,7 @@ public:
 		auto p = std::make_shared<T>();
 		p->owner = this;
 
-		if constexpr (std::is_base_of_v<AABBCollider, T>)
+		if constexpr (std::is_base_of_v<Collider, T>)
 			colliders.push_back(p);
 		components.push_back(p);
 		p->Awake();
@@ -156,6 +158,12 @@ public:
 
 	//	子オブジェクトを取得する
 	inline GameObject* GetChild(size_t index) const { return children[index]; }
+
+	//	座標変換行列を取得する
+	inline const Matrix4x4& GetTransformMatrix() const { return transformMatrix; }
+
+	//	法線変換行列を取得する
+	inline const Matrix3x3& GetNormalMatrix() const { return normalMatrix; }
 };
 //	別名定義
 using GameObjectPtr = std::shared_ptr<GameObject>;

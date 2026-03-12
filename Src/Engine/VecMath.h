@@ -243,5 +243,13 @@ void GetRotationVectors(Vector3* result,
 void MultiplyRotationVectors(Vector3* result,
 	const Vector3* m, const Vector3* n);
 
+//	4x4s—ñ‚©‚çŠg‘å—¦‚ğ’Šo‚·‚é
+inline Vector3 ExtractScale(const Matrix4x4& transform) {
+	const float sx = Vector3(transform[0]).Magnitude();
+	const float sy = Vector3(transform[1]).Magnitude();
+	const float sz = Vector3(transform[2]).Magnitude();
+	return { sx, sy, sz };
+}
+
 
 #endif // !_VECMATH_H_
