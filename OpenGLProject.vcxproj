@@ -173,6 +173,7 @@
     <ClInclude Include="Src\Engine\Mesh.h" />
     <ClInclude Include="Src\Engine\Random.h" />
     <ClInclude Include="Src\Engine\Scene.h" />
+    <ClInclude Include="Src\Engine\SphereCollider.h" />
     <ClInclude Include="Src\Engine\Texture.h" />
     <ClInclude Include="Src\Engine\UIButton.h" />
     <ClInclude Include="Src\Engine\UILayout.h" />

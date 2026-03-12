@@ -491,6 +491,7 @@ void Engine::UpdateGameObject(float deltaTime) {
 	}
 
 	//	ワールド座標変換行列を計算
+	//	※もっと軽量化できる　
 	std::vector<Matrix4x4> worldTransforms(gameObjects.size());
 	std::vector<Matrix3x3> worldNormals(gameObjects.size());
 	for (int i = 0; i < gameObjects.size(); i++) {
