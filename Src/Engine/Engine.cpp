@@ -11,6 +11,10 @@
 
 #include "../PlayerComponent.h"
 
+ //	衝突判定データ
+#include "AABBCollider.h"
+#include "SphereCollider.h"
+
  //	図形データ
 #include "../../Res/MeshData/crystal_mesh.h"
 #include "../../Res/MeshData/wall_mesh.h"
@@ -55,18 +59,18 @@ GLuint CompileShader(GLenum type, const char* filename) {
 	return object;
 }
 
-//	必要な音声データ
-//	BGM　2つ　	タイトル、げーむ中
-//	SE　5つ		ボタンクリック音、ドア開く音、レバー動作音、
-//				ゴールした音、敵に接触音
-//	著作権表記テキスト残しておく。どのサイト、曲の名前。
-// 
-//	BGM
-//	国内：最大規模の投稿サイト　dova-s.jp
-//	海外：世界最大規模の投稿サイト　soundcloud.com
-//	
-//	SE
-//	freesound.org	ポンぺウ・ファブラ大学の音楽技術グループ運営の音声投稿サイト
+/*
+ *	貫通ベクトルをゲームオブジェクトに反映
+ */
+void Engine::ApplyPenetration(WorldColliderList* worldColliders, GameObject* obj, const Vector3& p) {
+	//	ゲームオブジェクトを移動
+	obj->position += p;
+
+	//	全てのワールドコライダーを移動
+	for (auto& col : *worldColliders) {
+		col.world->AddPosition(p);
+	}
+}
 
 /*
  *	ゲームエンジンを実行する
@@ -439,23 +443,10 @@ void Engine::DrawGameObject(GLuint prog, GameObjectList::iterator begin, GameObj
 
 		glProgramUniform4fv(prog, 100, 1, &obj->color.x);
 
-		//	自分の座標変換行列を求める
-		Matrix4x4 transform = GetTransformMatrix(obj->scale, obj->rotation, obj->position);
-		Matrix3x3 transformNormal = GetRotationMatrix(obj->rotation);
-
-		//	全ての親の座標変換行列をかけ合わせる
-		for (GameObject* p = obj->parent; p; p = p->parent) {
-			Matrix4x4 parentTransform = GetTransformMatrix(p->scale, p->rotation, p->position);
-			Matrix3x3 parentTransformNormal = GetRotationMatrix(p->rotation);
-
-			transform = parentTransform * transform;
-			transformNormal = parentTransformNormal * transformNormal;
-		}
-
 		//	座標変換ベクトル配列をGPUメモリにコピー
-		glProgramUniformMatrix4fv(prog, 0, 1, GL_FALSE, &transform[0].x);
+		glProgramUniformMatrix4fv(prog, 0, 1, GL_FALSE, &obj->GetTransformMatrix()[0].x);
 		if (prog != progUnlit)
-			glProgramUniformMatrix3fv(prog, 1, 1, GL_FALSE, &transformNormal[0].x);
+			glProgramUniformMatrix3fv(prog, 1, 1, GL_FALSE, &obj->GetNormalMatrix()[0].x);
 
 
 		//	図形を描画
@@ -534,24 +525,9 @@ void Engine::HandleGameObjectCollision() {
 		for (int i = 0; i < obj->colliders.size(); i++) {
 			//	オリジナルのコライダーをコピー
 			list[i].origin = obj->colliders[i];
-			list[i].world = obj->colliders[i]->aabb;
 
 			//	ローカル座標をワールド座標に変換
-			list[i].world.min = Vector3::Scale(list[i].world.min, obj->scale);
-			list[i].world.max = Vector3::Scale(list[i].world.max, obj->scale);
-			list[i].world.min += obj->position;
-			list[i].world.max += obj->position;
-
-			//	親の座標変換パラメータを反映
-			Vector3 s = obj->scale;
-			Vector3 v = obj->position;
-
-			if (obj->parent) {
-				list[i].world = {
-					Vector3::Scale(list[i].world.min, obj->parent->scale) + obj->parent->position,
-					Vector3::Scale(list[i].world.max, obj->parent->scale) + obj->parent->position
-				};
-			}
+			list[i].world = obj->colliders[i]->GetTransformedCollider(obj->GetTransformMatrix());
 		}
 		colliders.push_back(list);
 	}
@@ -578,11 +554,52 @@ void Engine::HandleGameObjectCollision() {
 }
 
 /*
+ *	型によって交差判定関数を呼び分ける関数テンプレート
+ */
+template <typename T, typename U>
+bool CallIntersect(const ColliderPtr& a, const ColliderPtr& b, Vector3& p) {
+	return Intersect(static_cast<T&>(*a).GetShape(), static_cast<U&>(*b).GetShape(), p);
+}
+
+/*
+ *	型によって交差判定関数を呼び分ける関数テンプレート
+ */
+template <typename T, typename U>
+bool CallIntersectReverse(const ColliderPtr& a, const ColliderPtr& b, Vector3& p) {
+	if (Intersect(static_cast<U&>(*b).GetShape(), static_cast<T&>(*a).GetShape(), p)) {
+		p *= -1;		//	貫通ベクトルを逆向きにする
+		return true;
+	}
+	return false;
+}
+
+
+
+
+/*
  *	コライダー単位の当たり判定
  *	@param	a	判定対象のコライダー配列1
  *	@param	b	判定対象のコライダー配列2
  */
 void Engine::HandleWorldColliderCollision(WorldColliderList* a, WorldColliderList* b) {
+	//	関数ポインタ型を別名定義
+	//	std::functionで設定することもできるが、
+	//	何万回も呼び出されるような物理挙動や衝突判定は関数ポインタのが向いている
+	using FuncType = bool(*)(const ColliderPtr&, const ColliderPtr&, Vector3&);
+
+	//	組み合わせの対応表を配列で作成する
+	//	関数テーブル、「ダブルディスパッチ」
+	static const FuncType funcList[2][2] = {
+		{
+			CallIntersect<AABBCollider, AABBCollider>,
+			CallIntersect<AABBCollider, SphereCollider>
+		},
+		{
+			CallIntersectReverse<SphereCollider, AABBCollider>,
+			CallIntersect<SphereCollider, SphereCollider>
+		}
+	};
+
 	//	コライダー毎の衝突判定
 	for (auto& colA : *a) {
 		for (auto& colB : *b) {
@@ -592,7 +609,10 @@ void Engine::HandleWorldColliderCollision(WorldColliderList* a, WorldColliderLis
 
 			//	衝突判定
 			Vector3 penetration;
-			if (Intersect(colA.world, colB.world, penetration)) {
+			const int typeA = static_cast<int>(colA.origin->GetType());
+			const int typeB = static_cast<int>(colB.origin->GetType());
+
+			if (funcList[typeA][typeB](colA.world, colB.world, penetration)) {
 				GameObject* objA = colA.origin->GetOwner();
 				GameObject* objB = colB.origin->GetOwner();
 
@@ -601,18 +621,18 @@ void Engine::HandleWorldColliderCollision(WorldColliderList* a, WorldColliderLis
 					//	Aがstaticか
 					if (colA.origin->isStatic) {
 						//	Bを調整
-						colB.AddPosition(penetration);
+						ApplyPenetration(b, objB, penetration);
 					}
 					//	Bがstaticか
 					else if (colB.origin->isStatic) {
 						//	Aを調整
-						colA.AddPosition(-penetration);
+						ApplyPenetration(a, objA, -penetration);
 					}
 					//	どちらもstatic
 					else {
 						//	AもBも均等に調整
-						colB.AddPosition(penetration * 0.5f);
-						colA.AddPosition(-penetration);
+						ApplyPenetration(b, objB, penetration * 0.5f);
+						ApplyPenetration(a, objA, -penetration * 0.5f);
 					}
 				}
 

@@ -97,18 +97,18 @@ private:
 
 	//	ワールド座標系のコライダーを表す構造体
 	struct WorldCollider {
+		ColliderPtr origin;
+		ColliderPtr world;
+
 		//	座標を変更する
 		void AddPosition(const Vector3& v) {
 			origin->GetOwner()->position += v;
-			world.min += v;
-			world.max += v;
+			world->AddPosition(v);
 		}
-
-		AABBColliderPtr origin;
-		AABB world;
 	};
 	using WorldColliderList = std::vector<WorldCollider>;
 
+	void ApplyPenetration(WorldColliderList* worldColliders, GameObject* obj, const Vector3& p);
 
 public:
 	Engine() = default;
