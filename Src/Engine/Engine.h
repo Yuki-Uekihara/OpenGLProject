@@ -202,7 +202,7 @@ public:
 
 	//	光線の交差判定の結果
 	struct RaycastHit {
-		AABBColliderPtr collider;	//	最初に光線と交差したコライダー
+		ColliderPtr collider;	//	最初に光線と交差したコライダー
 		Vector3 point;				//	最初の交点の座標
 		float distance;				//	最初の交点までの距離
 	};
@@ -213,7 +213,7 @@ public:
 	 *	@param	distance
 	 *	@return	bool
 	 */
-	using RaycastPredicate = std::function<bool(const AABBColliderPtr& collider, float distance)>;
+	using RaycastPredicate = std::function<bool(const ColliderPtr& collider, float distance)>;
 
 	/* 
 	 *	光線とコライダーの交差判定

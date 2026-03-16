@@ -365,7 +365,7 @@ void MainGameScene::StatePlaying(Engine& engine, float deltaTime) {
 
 		const bool hit = engine.Raycast(
 			ray, hitInfo,
-			[](const AABBColliderPtr& col, float distance) {
+			[](const ColliderPtr& col, float distance) {
 				//	交点が1m以内 && 当たったオブジェクトがプレイヤーじゃない
 				return distance < 2.0f && col->GetOwner()->name != "player";
 			}

@@ -854,23 +854,24 @@ bool Engine::Raycast(const Ray& ray, RaycastHit& hitInfo, const RaycastPredicate
 
 	for (const auto& obj : gameObjects) {
 		for (const auto& col : obj->colliders) {
-			//	AABBをワールド座標系に変換
-			AABB worldAABB = {
-				Vector3::Scale(col->aabb.min, obj->scale) + obj->position,
-				Vector3::Scale(col->aabb.max, obj->scale) + obj->position
-			};
-
-			//	親の座標変換パラメータを反映
-			if (obj->parent) {
-				worldAABB = {
-					Vector3::Scale(worldAABB.min, obj->parent->scale) + obj->parent->position,
-					Vector3::Scale(worldAABB.max, obj->parent->scale) + obj->parent->position
-				};
-			}
+			//	コライダーをワールド座標系に変換
+			const auto worldCollider = col->GetTransformedCollider(obj->GetTransformMatrix());
 
 			//	光線との交差判定
 			float d;
-			if (!Intersect(worldAABB, ray, d))
+			bool hit = false;
+
+			switch (col->GetType()) {
+			case Collider::Type::AABB:
+				hit = Intersect(static_cast<AABBCollider&>(*worldCollider).aabb, ray, d);
+				break;
+
+			case Collider::Type::Sphere:
+				hit = Intersect(static_cast<SphereCollider&>(*worldCollider).sphere, ray, d);
+				break;
+			}
+
+			if (!hit)
 				continue;
 
 			//	交差判定の対象かどうか
