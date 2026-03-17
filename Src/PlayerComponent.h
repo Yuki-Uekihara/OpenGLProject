@@ -7,6 +7,7 @@
 
 #include "Engine/Component.h"
 #include "Engine/Engine.h"
+#include "Engine/SphereCollider.h"
 #include "Engine/Light.h"
 
 /*
@@ -32,6 +33,14 @@ public:
 	virtual void Awake() override {
 		auto owner = GetOwner();
 		auto engine = owner->GetEngine();
+
+		//	コライダーの設定
+		//	球体のコライダーを2つ並べておくことで縦長の衝突形状を再現
+		for (float i = 0; i < 2; i++) {
+			auto col = owner->AddComponent<SphereCollider>();
+			col->sphere.position.y = -0.5f * i;
+			col->sphere.radius = 0.5f;
+		}
 
 		//	手
 		auto hand = engine->Create<GameObject>("player.hand", { 1.0f, -0.4f, -1.5f });

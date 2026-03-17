@@ -275,6 +275,8 @@ int Engine::Initialize() {
 	meshBuffer->LoadOBJ("Res/MeshData/arm_and_hand/arm_and_hand_grab.obj");
 	meshBuffer->LoadOBJ("Res/MeshData/Weapon/sword.obj");
 
+	meshBuffer->LoadOBJ("Res/MeshData/Skechfab/Stair.obj");
+
 	//	ˆêŒ³ŠÇ—”z—ñ‚Ì—e—Ê‚ğ—\–ñ
 	gameObjects.reserve(1000);
 

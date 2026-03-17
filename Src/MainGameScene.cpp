@@ -243,11 +243,6 @@ bool MainGameScene::Initialize(Engine& engine) {
 	//	カメラを操作するプレイヤーコンポーネントを生成
 	auto player = engine.Create<GameObject>("player", { 0.0f, 10.0f, 0.0f });
 	playerComponent = player->AddComponent<PlayerComponent>();
-	auto collider = player->AddComponent<AABBCollider>();
-	collider->aabb = {
-		{ -0.5f, -1.0f, -0.5f },
-		{  0.5f,  1.0f,  0.5f },
-	};
 
 	//	プレイヤーとカメラの初期位置を設定
 	GameObject& camera = engine.GetMainCamera();
@@ -291,6 +286,22 @@ bool MainGameScene::Initialize(Engine& engine) {
 	ghost2->materials = CloneMaterialList(ghost2->staticMesh);
 	//ghost2->materials[0]->baseColor = { 0.1f, 1.0f, 0.1f, 1.0f };
 	ghost2->materials[0]->texBaseColor = engine.GetTexture("Res/MeshData/ghost/ghost_green.tga");
+
+	//	階段テスト
+	auto stair = engine.Create<GameObject>("stair");
+	stair->position = startPoint + Vector3(2.0f, -1.0f, 0.0f);
+	stair->rotation.y = 90.0f * Deg2Rad;
+	stair->staticMesh = engine.GetStaticMesh("Res/MeshData/Skechfab/Stair.obj");
+	//	階段の段数分　当たり判定を付ける
+	for (float i = 0; i < 4; i++) {
+		auto aabb = stair->AddComponent<AABBCollider>();
+		aabb->aabb = {
+			{ -1.0f, 0.0f,			-1.0f + 0.4f * i },
+			{  1.0f, 0.4f + 0.4f * i, -0.4f + 0.4f * i }
+		};
+		aabb->isStatic = true;
+	}
+
 
 	return true;	//	初期化成功
 }
@@ -458,39 +469,19 @@ Vector3 MainGameScene::AdjustPosition(const Vector3& position, const Vector3& si
 		}
 	}
 
-	//	物体のAABB
-	AABB a;
-	a.min = {
-		position.x - size.x * 0.5f,
-		position.y - size.y * 0.5f,
-		position.z - size.z * 0.5f
-	};
-	a.max = {
-		position.x + size.x * 0.5f,
-		position.y + size.y * 0.5f,
-		position.z + size.z * 0.5f
-	};
+	//	物体のSphere
+	Sphere a;
+	a.position = position;
+	a.radius = std::min({ size.x, size.y, size.z }) * 0.5f;
 
 	//	物体と壁の衝突判定
 	Vector3 newPos = position;
 	for (const auto& w : walls) {
 		Vector3 penetration;
-		if (Intersect(a, w, penetration)) {
+		if (Intersect(w, a, penetration)) {
 			//	交差しているので座標を補正
-			newPos.x -= penetration.x;
-			newPos.y -= penetration.y;
-			newPos.z -= penetration.z;
-
-			a.min = {
-				a.min.x - penetration.x,
-				a.min.y - penetration.y,
-				a.min.z - penetration.z
-			};
-			a.max = {
-				a.max.x + penetration.x,
-				a.max.y + penetration.y,
-				a.max.z + penetration.z
-			};
+			newPos += penetration;
+			a.position += penetration;
 		}
 	}
 
