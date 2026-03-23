@@ -9,6 +9,7 @@
 #include "Engine/Engine.h"
 #include "Engine/SphereCollider.h"
 #include "Engine/Light.h"
+#include "Engine/CharacterMovement.h"
 
 /*
  *	プレイヤー
@@ -33,6 +34,9 @@ public:
 	virtual void Awake() override {
 		auto owner = GetOwner();
 		auto engine = owner->GetEngine();
+
+		owner->AddComponent<CharacterMovement>();
+
 
 		//	コライダーの設定
 		//	球体のコライダーを2つ並べておくことで縦長の衝突形状を再現

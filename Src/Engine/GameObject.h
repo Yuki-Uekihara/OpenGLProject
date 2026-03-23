@@ -54,6 +54,7 @@ public:
 	StaticMeshPtr staticMesh;						//	表示するスタティックメッシュ
 	MaterialList materials;							//	固有マテリアル配列
 	int renderQueue = RenderQueue_geometry;			//	描画順
+	bool isGrounded = false;						//	接地しているかどうか
 
 public:
 	GameObject() = default;

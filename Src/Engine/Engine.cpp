@@ -63,6 +63,18 @@ GLuint CompileShader(GLenum type, const char* filename) {
  *	貫通ベクトルをゲームオブジェクトに反映
  */
 void Engine::ApplyPenetration(WorldColliderList* worldColliders, GameObject* obj, const Vector3& p) {
+	//	設置判定
+	//	衝突ベクトルが垂直に近い場合に「床に触れた」とみなす
+	static const float cosGround = std::cosf(30.0f * Deg2Rad);	//	床とみなす角度
+	if (p.y > 0) {
+		//	対象が単位垂直ベクトルであることを利用し、内積による角度の比較を単純化
+		const float d = p.Magnitude();
+		if (p.y >= d * cosGround)
+			//	設置
+			obj->isGrounded = true;
+	}
+
+
 	//	ゲームオブジェクトを移動
 	obj->position += p;
 
@@ -521,6 +533,9 @@ void Engine::HandleGameObjectCollision() {
 		//	コライダーを持っていないオブジェクトは処理しない
 		if (obj->colliders.empty())
 			continue;
+
+		//	「設置していない」状態にする
+		obj->isGrounded = false;
 
 		WorldColliderList list(obj->colliders.size());
 

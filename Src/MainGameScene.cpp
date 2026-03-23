@@ -58,6 +58,15 @@ bool MainGameScene::Initialize(Engine& engine) {
 			const float posZ = static_cast<float>(y + 0.5f) * squareSize;	//	ÉTÉCÉYí≤êÆ
 
 			auto floor = engine.Create<GameObject>("floor");
+			auto collider = floor->AddComponent<AABBCollider>();
+			collider->aabb.min = { 0.0f, -1.0f, 0.0f };
+			collider->aabb.max = Vector3(
+				static_cast<float>(mapSizeX),
+				0.0f,
+				static_cast<float>(mapSizeY) * squareSize
+			);
+			collider->isStatic = true;
+
 			floor->position = Vector3(posX, 0.0f, posZ);
 			floor->scale = Vector3::one * 1.075f;
 			floor->staticMesh = meshFloor;
@@ -237,6 +246,7 @@ bool MainGameScene::Initialize(Engine& engine) {
 			}
 		}
 	}
+
 
 
 

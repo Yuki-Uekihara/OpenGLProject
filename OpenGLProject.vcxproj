@@ -163,6 +163,7 @@
     <ClInclude Include="Src\Engine\AABBCollider.h" />
     <ClInclude Include="Src\Engine\Billboard.h" />
     <ClInclude Include="Src\Engine\BufferObject.h" />
+    <ClInclude Include="Src\Engine\CharacterMovement.h" />
     <ClInclude Include="Src\Engine\Collider.h" />
     <ClInclude Include="Src\Engine\Collision.h" />
     <ClInclude Include="Src\Engine\Component.h" />
