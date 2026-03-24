@@ -165,6 +165,80 @@ bool Intersect(const AABB& aabb, const Sphere& sphere, Vector3& penetration) {
 }
 
 /*
+ *  OBBから点への最近点
+ *  @param[in]  Box         判定対象のOBB
+ *  @param[in]  Vector3     判定対象の点
+ */
+Vector3 ClosestPoint(const Box& box, const Vector3& point) {
+    //  OBBから点に向かうベクトル
+    const Vector3 v = point - box.position;
+    Vector3 result = box.position;
+    for (int i = 0; i < 3; i++) {
+        //  ベクトルをOBBの軸に合わせる
+        float d = Vector3::Dot(v, box.axis[i]);
+
+        d = std::clamp(d, -box.scale[i], box.scale[i]);
+
+        //  最近点を更新
+        result += box.axis[i] * d;
+    }
+    return result;
+}
+
+/*
+ *  OBBと球体の交差判定
+ *  @param[in]  Box         判定対象のBox
+ *  @param[in]  Sphere      判定対象のSphere
+ *  @param[out] Vector3     貫通ベクトル
+ */
+bool Intersect(const Box& box, const Sphere& sphere, Vector3& penetration) {
+    //  最近点から球体の中心までの距離が、球体の半径よりも大きければ衝突していない
+    const Vector3 p = ClosestPoint(box, sphere.position);
+    const Vector3 v = sphere.position - p;
+    const float ll = Vector3::Dot(v, v);
+
+    if (ll > sphere.radius * sphere.radius)
+        return false;
+
+    //  距離が0より大きい場合、球体の中心はOBBの外側にある
+    if (ll > 0.001f) {
+        //  最近点から球体の中心に向かう方向から衝突したとみなす
+        const float l = std::sqrtf(ll);
+        penetration = v * ((sphere.radius - l) / l);
+    }
+    //  距離が0の場合、球体の中心はOBBの内側にある
+    else {
+        //  貫通距離が最も短い面から衝突したとみなす
+        const Vector3 a = p - box.position; //  OBBの中心から球の中心へのベクトル
+        int faceIndex = 0;      //  貫通方向を示すインデックス変数
+        float distance = FLT_MAX;   //  貫通距離
+        float sign = 1;     //  貫通ベクトルの正負
+
+        for (int i = 0; i < 3; i++) {
+            //  ベクトルをOBBの軸に合わせる
+            float f = Vector3::Dot(v, box.axis[i]);
+            float t0 = f - (-box.scale[i]);
+            if (t0 < distance) {
+                faceIndex = i;
+                distance = t0;
+                sign = -1;
+            }
+
+            float t1 = box.scale[i] - f;
+            if (t1 < distance) {
+                faceIndex = i;
+                distance = t1;
+                sign = 1;
+            }
+        }
+
+        penetration = box.axis[faceIndex] * (distance + sphere.radius) * sign;
+    }
+
+    return true;
+}
+
+/*
  *  スラブ(ある軸に垂直な2平面に囲まれた範囲)と光線の交差判定
  *  @param[in]  min         スラブの開始距離
  *  @param[in]  max         スラブの終了距離

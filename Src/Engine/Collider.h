@@ -33,6 +33,7 @@ public:
 	enum class Type {
 		AABB,		//	軸平行境界ボックス
 		Sphere,		//	球体
+		Box,		//	有向境界ボックス
 	};
 	virtual Type GetType() const = 0;
 };
