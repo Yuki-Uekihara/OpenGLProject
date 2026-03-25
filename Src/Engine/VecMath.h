@@ -251,5 +251,26 @@ inline Vector3 ExtractScale(const Matrix4x4& transform) {
 	return { sx, sy, sz };
 }
 
+/*
+ *	À•W•ÏŠ·s—ñ‚ğ•½sˆÚ“®AŠg‘å—¦A‰ñ“]s—ñ‚ÌŠe¬•ª‚É•ª‰ğ‚·‚é
+ *	@param[in]	transform	•ª‰ğ‚·‚éÀ•W•ÏŠ·s—ñ
+ *	@param[out]	translate	•½sˆÚ“®‚ÌŠi”[æ
+ *	@param[out]	scale		Šg‘å—¦‚ÌŠi”[æ
+ *	@param[out]	rotation	‰ñ“]s—ñ‚ÌŠi”[æ
+ */
+inline void Decompose(const Matrix4x4& transform, Vector3& translate, Vector3& scale, Matrix3x3& rotation) {
+	//	•½sˆÚ“®‚ğ•ª‰ğ
+	translate = Vector3(transform[3]);
+
+	//	Šg‘å—¦‚ğ•ª‰ğ
+	scale = ExtractScale(transform);
+
+	//	‰ñ“]s—ñ‚ğ•ª‰ğ
+	rotation = Matrix3x3(transform);
+	rotation[0] /= scale.x;
+	rotation[1] /= scale.y;
+	rotation[2] /= scale.z;
+}
+
 
 #endif // !_VECMATH_H_

@@ -162,6 +162,7 @@
     <ClInclude Include="Src\EnemySkull.h" />
     <ClInclude Include="Src\Engine\AABBCollider.h" />
     <ClInclude Include="Src\Engine\Billboard.h" />
+    <ClInclude Include="Src\Engine\BoxCollider.h" />
     <ClInclude Include="Src\Engine\BufferObject.h" />
     <ClInclude Include="Src\Engine\CharacterMovement.h" />
     <ClInclude Include="Src\Engine\Collider.h" />
