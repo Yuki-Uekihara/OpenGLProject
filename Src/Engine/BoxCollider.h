@@ -51,9 +51,11 @@ public:
 
 public:
 	//	}Œ`‚Ìí—Ş
-	inline Type GetType() const override { return Type::Box; }
+	inline Type GetType() const override { 
+		return Type::Box; }
 	//	}Œ`‚ğæ“¾‚·‚é
-	inline const Box& GetShape() const { return box; }
+	inline const Box& GetShape() const { 
+		return box; }
 };
 //	•Ê–¼’è‹`
 using BoxColliderPtr = std::shared_ptr<BoxCollider>;

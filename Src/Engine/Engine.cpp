@@ -14,6 +14,7 @@
  //	衝突判定データ
 #include "AABBCollider.h"
 #include "SphereCollider.h"
+#include "BoxCollider.h"
 
  //	図形データ
 #include "../../Res/MeshData/crystal_mesh.h"
@@ -590,7 +591,13 @@ bool CallIntersectReverse(const ColliderPtr& a, const ColliderPtr& b, Vector3& p
 	return false;
 }
 
-
+/*
+ *	常にfalseを返す関数テンプレート
+ */
+template <typename T, typename U>
+bool NotImplemented(const ColliderPtr& a, const ColliderPtr& b, Vector3& p) {
+	return false;
+}
 
 
 /*
@@ -606,14 +613,21 @@ void Engine::HandleWorldColliderCollision(WorldColliderList* a, WorldColliderLis
 
 	//	組み合わせの対応表を配列で作成する
 	//	関数テーブル、「ダブルディスパッチ」
-	static const FuncType funcList[2][2] = {
+	static const FuncType funcList[3][3] = {
 		{
 			CallIntersect<AABBCollider, AABBCollider>,
-			CallIntersect<AABBCollider, SphereCollider>
+			CallIntersect<AABBCollider, SphereCollider>,
+			NotImplemented<AABBCollider, BoxCollider>
 		},
 		{
 			CallIntersectReverse<SphereCollider, AABBCollider>,
-			CallIntersect<SphereCollider, SphereCollider>
+			CallIntersect<SphereCollider, SphereCollider>,
+			CallIntersectReverse<SphereCollider, BoxCollider>
+		},
+		{
+			NotImplemented<BoxCollider, AABBCollider>,
+			CallIntersect<BoxCollider, SphereCollider>,
+			NotImplemented<BoxCollider, BoxCollider>
 		}
 	};
 
@@ -885,6 +899,10 @@ bool Engine::Raycast(const Ray& ray, RaycastHit& hitInfo, const RaycastPredicate
 
 			case Collider::Type::Sphere:
 				hit = Intersect(static_cast<SphereCollider&>(*worldCollider).sphere, ray, d);
+				break;
+
+			case Collider::Type::Box:
+				hit = Intersect(static_cast<BoxCollider&>(*worldCollider).box, ray, d);
 				break;
 			}
 

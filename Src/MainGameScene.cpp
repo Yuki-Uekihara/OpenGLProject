@@ -18,6 +18,8 @@
 #include "AudioSettings.h"
 #include "NormalDoor.h"
 
+#include "Engine/BoxCollider.h"
+
 #include <fstream>
 #include <string>
 
@@ -259,6 +261,18 @@ bool MainGameScene::Initialize(Engine& engine) {
 	player->position = camera.position = startPoint;
 	player->rotation = camera.rotation = { 0.0f, 180.0f * Deg2Rad, 0.0f };
 
+	//	ボックスコライダーのテスト
+	{
+		auto box = engine.Create<GameObject>("Box Collider Test");
+		box->position = startPoint + Vector3(0.0f, -1.2f, 2.0f);
+		box->staticMesh = engine.GetStaticMesh("box");
+		box->rotation.x = 25.0f * Deg2Rad;
+		box->rotation.y = 45.0f * Deg2Rad;
+		auto col = box->AddComponent<BoxCollider>();
+		col->isStatic = true;
+	}
+
+
 	//	OBJファイル表示テスト
 	auto highpoly = engine.Create<GameObject>("skull_highpoly");
 	highpoly->position = startPoint + Vector3{ 1.0f, 0.0f, 0.0f };
@@ -394,6 +408,16 @@ void MainGameScene::StatePlaying(Engine& engine, float deltaTime) {
 
 		if (hit) {
 			GameObject* owner = hitInfo.collider->GetOwner();
+
+			//	ボックスコライダーのレイテスト
+			if (owner->name == "Box Collider Test") {
+				if (engine.GetKey(GLFW_KEY_LEFT_SHIFT)) {
+					owner->rotation.x += 15.0f * Deg2Rad;
+				}
+				else {
+					owner->rotation.y += 15.0f * Deg2Rad;
+				}
+			}
 
 			//	光線がドアに衝突していたらドアをどかす
 			if (owner->name == "NormalDoor.Door") {

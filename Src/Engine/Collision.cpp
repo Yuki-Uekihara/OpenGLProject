@@ -232,7 +232,7 @@ bool Intersect(const Box& box, const Sphere& sphere, Vector3& penetration) {
             }
         }
 
-        penetration = box.axis[faceIndex] * (distance + sphere.radius) * sign;
+        penetration = box.axis[faceIndex] * ((distance + sphere.radius) * sign);
     }
 
     return true;
@@ -276,6 +276,49 @@ bool IntersectSlab(float min, float max, float start, float direction, float& tm
 }
 
 /*
+ *  スラブ(ある軸に垂直な2平面に囲まれた範囲)と光線の交差判定
+ *  @param[in]  axis        スラブの軸
+ *  @param[in]  scale       スラブの幅
+ *  @param[in]  start       光線の発射点（スラブの中心が原点）
+ *  @param[in]  direction   光線の向き
+ *  @param[out] tmin        OBBと光線の交差開始距離
+ *  @param[out] tmax        OBBと光線の交差終了距離
+ *  @return     bool
+ */
+bool IntersectSlab(const Vector3& axis, float scale, const Vector3& start, const Vector3& direction, float& tmin, float& tmax) {
+    //  向きベクトルと発射点について軸ベクトル方向の成分を求める
+    const float e = Vector3::Dot(axis, direction);      //  「光線の向き」を「スラブの軸ベクトル」に合わせる
+    const float f = Vector3::Dot(axis, start);          //  「光線の発射点」を「スラブの軸ベクトル」に合わせる
+
+    //  光線とスラブが平行な場合
+    //  発射点がスラブの内側にあれば交差する、そうでなければ交差しない
+    if (std::fabsf(e) < 0.0001f)
+        return (f >= -scale) && (f <= scale);
+
+    //  光線のスラブが交わる範囲の開始時刻と終了時刻を求める
+    float t0 = (-scale - f) / e;
+    float t1 = (scale - f) / e;
+
+    //  時刻の速い側を開始時刻とする
+    if (t0 > t1) {
+        const float tmp = t0;
+        t0 = t1;
+        t1 = tmp;
+    }
+
+    //  以前の開始時刻と今回の開始時刻を比較し、遅い方を選択
+    if (t0 > tmin)
+        tmin = t0;
+
+    //  以前の終了時刻と今回の終了時刻を比較し、早い方を選択
+    if (t1 < tmax)
+        tmax = t1;
+
+    //  「開始時刻 <= 終了時刻」の場合は交差している
+    return tmin <= tmax;
+}
+
+/*
  *  AABBと光線の交差判定
  *  @param[in]  aabb        判定対象のAABB
  *  @param[in]  ray         判定対象の光線
@@ -304,6 +347,13 @@ bool Intersect(const AABB& aabb, const Ray& ray, float& distance) {
     return true;        //  交差している
 }
 
+/*
+ *  球と光線の交差判定
+ *  @param[in]  sphere      判定対象の球
+ *  @param[in]  ray         判定対象の光線
+ *  @param[out] distance    光線が球と最初に交差する距離
+ *  @return     bool
+ */
 bool Intersect(const Sphere& sphere, const Ray& ray, float& distance) {
     //	Ray = 始点P, 向きD, 任意の位置変数t
     //	Ray(t) = P + t * D
@@ -348,5 +398,29 @@ bool Intersect(const Sphere& sphere, const Ray& ray, float& distance) {
     if (distance < 0)
         distance = 0;
 
+    return true;
+}
+
+/*
+ *  OBBと光線の交差判定
+ *  @param[in]  box         判定対象のOBB
+ *  @param[in]  ray         判定対象の光線
+ *  @param[out] distance    光線がOBBと最初に交差する距離
+ *  @return     bool
+ */
+bool Intersect(const Box& box, const Ray& ray, float& distance) {
+    //  スラブの中心を原点とした場合の光線の発射点を計算
+    const Vector3 start = ray.origin - box.position;
+
+    //  スラブとの交差判定
+    float tmin = 0.0f;
+    float tmax = FLT_MAX;
+    for (int i = 0; i < 3; i++) {
+        if(!IntersectSlab(box.axis[i], box.scale[i], start, ray.direction, tmin, tmax))
+            return false;
+    }
+
+    //  交点までの距離を設定
+    distance = tmin;
     return true;
 }

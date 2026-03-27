@@ -48,5 +48,6 @@ bool Intersect(const Box& box, const Sphere& sphere, Vector3& penetration);
 
 bool Intersect(const AABB& aabb, const Ray& ray, float& distance);
 bool Intersect(const Sphere& sphere, const Ray& ray, float& distance);
+bool Intersect(const Box& box, const Ray& ray, float& distance);
 
 #endif // !_COLLISION_H_
